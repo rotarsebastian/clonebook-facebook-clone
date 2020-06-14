@@ -1,0 +1,9 @@
+/node_modules/
+/public/build/
+/public/bundle/
+/server/config
+/server/node_modules/
+/server/.env
+/server/data.json
+
+.DS_Store

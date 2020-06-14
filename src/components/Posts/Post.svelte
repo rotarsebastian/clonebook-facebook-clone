@@ -1,0 +1,425 @@
+<script>
+    import Comment from './Comment.svelte';
+    import EditDelete from './../MiniComponents/EditDelete.svelte';
+    import ProfileImg from './../MiniComponents/ProfileImage.svelte';
+    import { like } from '../../helpers/icons.js';
+    import Dialog from './../Modals/Dialog.svelte';
+    import { getContext } from 'svelte';
+    import Slides from './../Modals/Slides.svelte';
+    import { store } from './../../stores/store.js';
+    import { goto } from '@sveltech/routify';
+    import moment from 'moment';
+    import { editPost, likePost, addCommentToPost, removeComment } from './../../helpers/posts.js';
+    import { validateForm } from './../../helpers/validation';
+    import { getNotificationsContext } from 'svelte-notifications';
+
+    const { addNotification } = getNotificationsContext();
+
+    const showNotification = (type, text) => {
+        return addNotification({
+            text,
+            position: 'bottom-right',
+            type,
+            removeAfter: 3000,
+        });
+    }
+
+    export let id;
+    export let onDelete;
+
+    const { open } = getContext('simple-modal');
+
+    $: post = $store.posts.find(post => post._id === id);
+
+    let seeComments, commInput, showDropdown = false, editDelete;
+
+    const handleLike = async() => {
+        // post.likes.indexOf($store.user._id) === -1 
+        // ? post.likes = [ ...post.likes, $store.user._id ] 
+        // : post.likes = post.likes.filter(post => post !== $store.user._id);
+        const likeType = post.likes.indexOf($store.user._id) === -1 ? 1 : 0;
+        const result = likeType === 1 ? await likePost(post._id, 1, $store.accessToken) : await likePost(post._id, 0, $store.accessToken);
+    }
+
+    const addComment = async(e) => {
+        // ====================== VALIDATION ======================
+        const commentData = [ 
+            { type: 'author', val: `${$store.user.first_name} ${$store.user.last_name}` }, 
+            { type: 'text', val: e.target.value }
+        ];
+
+        const isFormValid = validateForm(commentData);
+        if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
+
+        const result = await addCommentToPost(post._id, commentData, $store.accessToken);
+        if(result.status === 1) {
+            e.target.value = '';
+            seeComments = true;
+        }
+    }
+
+    const deleteComment = async(id) => {
+        // const filteredComms = post.comments.filter(comm => comm.id !== id);
+        // post.comments = filteredComms;
+
+        const result = await removeComment(post._id, id, $store.accessToken);
+        console.log(result);
+
+        if(result.status === 1) {
+            return showNotification('success', 'Comment deleted successfully!');
+        } 
+    }
+
+    const onOkay = async(text) => {
+        if(text) {
+            // ====================== VALIDATION ======================
+            const editPostData = [ { type: 'text', val: text } ];
+
+            const isFormValid = validateForm(editPostData);
+            if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
+
+            const result = await editPost(post._id, text, $store.accessToken);
+            console.log(result);
+
+            if(result.status === 1) {
+                return showNotification('success', 'Post edited successfully!');
+            } 
+        }
+        else onDelete(post._id);
+	}
+
+    const showDialog = dialogFor => {
+        showDropdown = false;
+        const dialogObj = dialogFor === 'delete' ? 
+            {
+                message: 'delete',
+                elem: 'post',
+                hasForm: false,
+                text: 'Are you sure you want to delete this post?',
+				onOkay,
+            } 
+            : 
+            {
+                value: post.text,
+                elem: 'post',
+                message: 'edit',
+                hasForm: true,
+				onOkay
+			};
+		open(
+			Dialog,
+			dialogObj,
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+			}
+	  );
+    };
+    
+    const showFullscreenImgs = images => {
+        open(
+			Slides,
+			{ images },
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+                styleWindow: {
+                    width: '90%'
+                },
+                styleBg: {
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    top: 0,
+                    left: 0
+                }
+			}
+	    );
+    }
+
+    window.addEventListener('click', e => {
+        if(e.target === editDelete) showDropdown = !showDropdown;
+        else if(showDropdown === true) showDropdown = false;
+    });
+
+</script>
+
+<!-- ######################################## -->
+<div class="postContainer">
+    <div class="topContainer">
+        <ProfileImg size={2} />
+        <div class="nameContainer">
+            <div class="name" on:click={() => $goto('../profile', { id: post.authorId })}>{post.author}</div>
+            <div class="time">{moment(post.date).format('HH:mm A')}</div>
+        </div>
+        {#if post.authorId === $store.user._id}
+            <div>
+                <img bind:this={editDelete} class="editDelete" src="https://static.xx.fbcdn.net/rsrc.php/v3/yn/r/oVV-iPd4q_P.png" alt="" height="16" width="16" />
+            </div>
+        {/if}
+        {#if showDropdown}
+            <div class="editPosition">
+                <EditDelete showDialog={showDialog} />
+            </div>
+        {/if}
+    </div>
+
+    <div class="textContainer">
+        {post.text}
+    </div>
+
+    {#if post.hasOwnProperty('imgs')}
+        <div class="postImgContainer">
+            {#each post.imgs as img, index}
+                {#if index < 2}
+                    <div class:unique={index === 0 && !post.imgs[1]} class="postImg">
+                        <img src={`https://clonebook.s3.eu-north-1.amazonaws.com/posts/${img}`} alt={'postImg'} on:click={() => showFullscreenImgs(post.imgs)} />
+                        {#if index === 1 && post.imgs.length > 2}
+                            <div class="moreImgs" on:click={() => showFullscreenImgs(post.imgs)}>+{post.imgs.length - 2}</div>
+                        {/if}
+                    </div>
+                {/if}
+            {/each}
+        </div>
+    {/if}
+
+    {#if post.likes && post.likes.length > 0}
+        <div class="likes">
+            <img height="18" src={like} width="18" alt="like-img" />
+            <span class="likesNumber">{post.likes.length}</span>
+        </div>
+    {/if}
+
+    <div class="buttonsContainer">
+        <div class="button" class:liked={post.likes && post.likes.indexOf($store.user._id) > -1 ? true : false} on:click={handleLike}>
+            <img draggable="false" height="18" width="18" alt="likeIcon" src="https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/HayyIjBF1VN.png" />
+            Like
+        </div>
+        <div class="button comm" on:click={() => commInput.focus()}>
+            Comment
+        </div>
+    </div>
+
+    {#if post.comments && post.comments.length > 0}
+        <div class="viewComments" on:click={() => seeComments = !seeComments}>{seeComments ? 'Hide' : 'View'} comments</div>
+    {/if}
+
+    {#if seeComments}
+        {#each post.comments as comment}
+            <Comment onDelete={deleteComment} comment={comment} />
+        {/each}
+    {/if}
+
+    <div class="bottomContainer">
+        <ProfileImg size={2} />
+        <input 
+            class="inputAddComment" 
+            type="text" 
+            placeholder="Write a comment..." 
+            bind:this={commInput} 
+            on:keyup={e => e.key === "Enter" ? addComment(e) : undefined } 
+        />
+    </div>
+</div>
+<!-- ######################################## -->
+
+<style>
+    .postImgContainer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: .65rem;
+    }
+
+    .postImg {
+        display: inline-flex;
+        width: calc(50% - 1px);
+        position: relative;
+    }
+
+    .postImg.unique {
+        display: inline-flex;
+        width: 100%;
+        position: relative;
+    }
+
+    .postImg:not(.unique):first-of-type {
+        margin-right: 2px;
+    }
+
+    .postImg img {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .postImg .moreImgs {
+        cursor: pointer;
+        user-select: none;
+        color: #fff;
+        font-size: 1.85rem;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+
+    }
+
+    .editPosition {
+        position: absolute;
+        right: 0;
+        top: 1.5rem;
+        z-index: 10;
+    }
+
+    .postContainer {
+        background: #fff;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 0 10px 0 #dcdcdc;
+    }
+
+    .topContainer {
+        display: flex;
+        padding: 0.9rem 0.4rem;
+        margin: 0 .5rem;
+        position: relative;
+    }
+
+    .nameContainer {
+        margin-left: .5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .nameContainer .name {
+        color: rgb(5, 5, 5);
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        transition: .3s;
+    }
+
+    .nameContainer .name:hover {
+        text-decoration: underline;
+    }
+
+    .nameContainer .time {
+        color: rgb(101, 103, 107);
+        font-size: 13px;
+        font-weight: 400;
+    }
+
+    .textContainer {
+        padding: .5rem .4rem;
+        margin: 0 .5rem;
+        color: rgb(5, 5, 5);
+        font-size: 15px;
+    }
+
+    .editDelete {
+        cursor: pointer;
+        position: absolute;
+        right: .25rem;
+        filter: invert(40%) sepia(44%) saturate(65%) hue-rotate(182deg) brightness(89%) contrast(87%);
+    }
+
+    .likes {
+        padding: .5rem 0;
+        margin: 0 .9rem;
+        padding-bottom: 1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .likesNumber {
+        color: rgb(101, 103, 107);
+        font-size: 15px;
+        cursor: pointer;
+        margin-left: .2rem;
+    }
+
+    .buttonsContainer {
+        display: flex;
+        justify-content: space-between;
+        padding: .25rem 0;
+        margin: 0 .9rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .button {
+        border-radius: 4px;
+        transition: .3s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 50%;
+        height: 2rem;
+        color: rgb(101, 103, 107);
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        user-select: none;
+    }
+
+    .button.liked img {
+        filter: invert(38%) sepia(39%) saturate(6421%) hue-rotate(205deg) brightness(100%) contrast(92%);
+    }
+
+    .button:hover {
+        background-color: rgb(240, 242, 245);
+    }
+
+    .button img {
+        margin-right: 6px;
+    }
+
+    .button.comm::before {
+        content: '';
+        display: inline-block;
+        height: 18px;
+        margin: 0 6px -3px 0;
+        min-width: 18px;
+        position: relative;
+        top: -2px;
+        width: 18px;
+        background-image: url("https://static.xx.fbcdn.net/rsrc.php/v3/yx/r/cOvW0EWujLu.png");
+        background-repeat: no-repeat;
+        background-size: 708px 1818px;
+        background-position: -323px -1369px;
+    }
+
+    .viewComments {
+        color: rgb(101, 103, 107);
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 500;
+        margin: .66rem .9rem;
+    }
+
+    .bottomContainer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: .25rem 0;
+        padding-bottom: .65rem;
+        margin: 0 .9rem;
+        margin-bottom: 0;
+        margin-top: .4rem;
+    }
+
+    .inputAddComment {
+        background-color: rgb(240, 242, 245);
+        color: rgb(28, 30, 33);
+        padding: 0.5rem .75rem;
+        outline: none;
+        border: none;
+        font-size: 0.925rem;
+        margin-left: .5rem;
+    }
+</style>

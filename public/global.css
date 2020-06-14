@@ -1,0 +1,78 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+@font-face {
+	font-family: 'Freight Medium';
+	src: url('./assets/fonts/Freight\ Sans\ Medium.otf'); 
+  }
+  
+@font-face {
+	font-family: 'Freight Bold';
+	src: url('./assets/fonts/Freight\ Sans\ Bold.otf'); 
+}
+
+@font-face {
+	font-family: 'Freight Light';
+	src: url('./assets/fonts/Freight\ Sans\ Light.otf'); 
+}
+
+:root {
+	--blue: #1877F2;
+	--black: #050505;
+	--grey: #65676B;
+	--light-grey: #F0F2F5;
+	--thin-border: rgba(0, 0, 0, 0.05); 
+	--white-ish: rgb(223, 223, 223);
+	--orange-color: #fe9303;
+	--pink-color: #e83251;
+	--error-color: #ff9800;
+	--color-title: #E4215B;
+	--radius: .9rem;
+	--box-shadow: 0px 1px 7px rgba(0, 0, 0, 0.14);
+}
+
+::placeholder {
+	color: var(--grey);
+	font-weight: 300;
+	font-size: .8rem;
+}
+
+body {
+	width: 100%;
+	font-family: system-ui, -apple-system, system-ui, ".SFNSText-Regular", sans-serif;
+	font-weight: 300;
+	font-size: 1.2rem;
+	background: var(--light-grey);
+}
+
+input { 
+	width: 100%;
+	border-radius: 2rem;
+	border: 0;
+	outline: none;
+}
+
+img.profileImg {
+	border-radius: 50%;
+}
+
+.notification {
+	font-size: .85rem;
+}
+
+.default-notification-success {
+	background-color: rgb(105, 167, 78) !important;
+    background-image: linear-gradient(rgb(103, 174, 85), rgb(87, 136, 67)) !important;
+    box-shadow: rgb(164, 227, 136) 0px 1px 1px 0px inset !important;
+}
+
+.default-notification-warning {
+	color: #fff !important;
+}
+
+.default-notification-style-button {
+	color: #fff !important;
+}
