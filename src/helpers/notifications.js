@@ -58,7 +58,7 @@ export const sendFriendRequest = async(request_for_id, token) => {
   }
 };
 
-export const deleteNotification = async(notification, token) => {
+export const deleteNotification = async(notificationId, token) => {
   try {
     const options = {
         method: 'POST',
@@ -66,10 +66,9 @@ export const deleteNotification = async(notification, token) => {
         'Accept': 'application/json',
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(notification)
+        }
     };
-    const response = await fetch(notificationsEndpoint + `/deleteNotification`, options);
+    const response = await fetch(notificationsEndpoint + `/deleteNotification/${notificationId}`, options);
     const data = await response.json();
     return data;
   }

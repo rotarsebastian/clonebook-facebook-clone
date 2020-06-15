@@ -155,3 +155,22 @@ export const removeComment = async(id, comment_id, token) => {
     return { status: 0, message: 'Can not connect to the server', code: 999 };
   }
 };
+
+export const likeComment = async(id, comment_id, answer, token) => {
+  try {
+    const options = {
+        method: 'PATCH',
+        headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      }
+    };
+    const response = await fetch(postsEndpoint + `/${id}/comment/${comment_id}/like?answer=${answer}`, options);
+    const data = await response.json();
+    return data;
+  }
+  catch(err) {
+    return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};

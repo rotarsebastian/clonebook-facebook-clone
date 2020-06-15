@@ -7,7 +7,7 @@
     import { goto } from '@sveltech/routify';
     import moment from 'moment';
     import { store } from './../../stores/store.js';
-    import { editComment } from './../../helpers/posts.js';
+    import { editComment, likeComment } from './../../helpers/posts.js';
     import { getNotificationsContext } from 'svelte-notifications';
     import { validateForm } from './../../helpers/validation';
 
@@ -27,12 +27,16 @@
 
     const { open } = getContext('simple-modal');
 
-    let liked = false, showEditDelete = false, showDropdown = false, editDelete;
-    let likes = comment.likes.length;
+    const postId = $store.posts.find(post => post.comments.findIndex(comm => comm._id === comment._id) > -1)._id;
 
-    const handleLike = () => {
+    let liked = comment.likes.findIndex(like => like === $store.user._id) > -1 ? true : false; 
+    let showEditDelete = false, showDropdown = false, editDelete;
+    $: likes = comment.likes.length;
+
+    const handleLike = async() => {
         liked = !liked;
-        liked ? likes++ : likes--;
+        const result = liked ? await likeComment(postId, comment._id, 1, $store.accessToken) : await likeComment(postId, comment._id, 0, $store.accessToken);
+        console.log(result);
     }
 
     window.addEventListener('click', e => {
@@ -47,8 +51,6 @@
 
             const isFormValid = validateForm(editCommentData);
             if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
-
-            const postId = $store.posts.find(post => post.comments.findIndex(comm => comm._id === comment._id) > -1)._id;
 
             const result = await editComment(postId, text, comment._id, $store.accessToken);
             console.log(result);
@@ -87,8 +89,8 @@
                 closeOnOuterClick: true,
 			}
 	  );
-	};
-    
+    };
+        
 </script>
 
 <!-- ######################################## -->
@@ -133,7 +135,7 @@
                 <div class="like" on:click={handleLike} class:liked={liked === true}>Like</div>
                 <span>&nbsp;·&nbsp;</span>
                 <div class="timePassed">{moment(comment.date).format('HH:mm A')}</div>
-                {#if comment.edited === 1}
+                {#if comment.edited === true}
                     <span>&nbsp;·&nbsp;</span>
                     <div class="timePassed">Edited</div>
                 {/if}

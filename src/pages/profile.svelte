@@ -1,6 +1,6 @@
 <script>
 	import { store } from './../stores/store.js';
-    import { getAccessToken, getSpecificUser } from './../helpers/auth';
+    import { getAccessToken, getSpecificUser, deleteFriend } from './../helpers/auth';
     import { sendFriendRequest } from './../helpers/notifications';
 	import { params } from '@sveltech/routify';
 	import moment from 'moment';
@@ -48,7 +48,10 @@
 	}	
 
 	const handleUnfriend = async() => {
-		console.log('unfriend');
+		const res = await deleteFriend(user_profile._id, $store.accessToken);
+		const filteredFriends = $store.user.friends.filter(friend => friend.friend_id !== user_profile._id);
+		$store.user.friends = filteredFriends;
+        showNotification('success', 'Friend removed successfully!');
 	}
 	
 	const userData = getUserData();

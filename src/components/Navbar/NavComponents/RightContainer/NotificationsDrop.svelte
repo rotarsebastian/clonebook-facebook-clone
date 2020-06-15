@@ -9,8 +9,8 @@
         else await answerFriendReq(notification, 0, $store.accessToken);
     }
 
-    const handledeleteNotification = async(notification) => {
-        const res = await deleteNotification(notification, $store.accessToken);
+    const handleDeleteNotification = async(id) => {
+        const res = await deleteNotification(id, $store.accessToken);
         console.log(res);
     }
 
@@ -27,7 +27,7 @@
                     {#if notification.type !== 'sentreq'}
                         <div class="item">
                             {#if notification.type !== 'request'}
-                                <span class="trash" on:click={() => handledeleteNotification(notification)}></span>
+                                <span class="trash" on:click={() => handleDeleteNotification(notification._id)}></span>
                             {/if}
                             <ProfileImg size={2} />
                             <div class="profile">

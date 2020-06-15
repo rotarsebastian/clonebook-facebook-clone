@@ -233,13 +233,14 @@ router.patch('/:id/comment/:comment_id', isAuthenticated, async(req, res) => {
 
         // ====================== EDIT COMMENT ======================
         const dbRes = await Post.findOneAndUpdate({ _id: id, comments: { $elemMatch: { _id: ObjectId(comment_id) }}},
-            { $set: { 'comments.$.text': req.body.text } }, 
+            { $set: { 'comments.$.text': req.body.text, 'comments.$.edited': true } }, 
             { upsert: true, useFindAndModify: false });
         if(!dbRes) return res.json({ status: 0, message: 'Comment does not exist!'});
 
         const updatedPost = { ...dbRes._doc };
         const updatedComm = updatedPost.comments.findIndex(comm => comm._id.toString() === comment_id.toString());
         updatedPost.comments[updatedComm].text = req.body.text;
+        updatedPost.comments[updatedComm].edited = true;
 
         touchedPost = updatedPost;
         globalPosts++;
@@ -285,6 +286,46 @@ router.patch('/:id/comment/:comment_id/delete', isAuthenticated, async(req, res)
     } catch (err) {
         // console.log(err);
         return res.json({ status: 0, message: 'Error deleting comment!'});
+    }
+});
+
+// ====================== LIKE A COMMENT ======================
+router.patch('/:id/comment/:comment_id/like', isAuthenticated, async(req, res) => {
+    try {
+        // ====================== GET THE POST AND COMMENT ID ======================
+        const { id, comment_id } = req.params;
+        const { answer } = req.query;
+        const { _id } = req.user;
+        if(!id || !comment_id || !answer || !_id) return res.json({ status: 0, message: 'Missing ids!', code: 404 });
+
+        // ====================== ADD LIKE TO COMMENT ======================
+        const dbRes = answer == 1 ? await Post.findOneAndUpdate(
+            { _id: id, comments: { $elemMatch: { _id: ObjectId(comment_id) }}},
+            { $addToSet: { 'comments.$.likes': _id } }, 
+            { upsert: true, useFindAndModify: false }
+        ) : await Post.findOneAndUpdate(
+            { _id: id, comments: { $elemMatch: { _id: ObjectId(comment_id) }}},
+            { $pull: { 'comments.$.likes': _id } }, 
+            { upsert: true, useFindAndModify: false }
+        );
+        if(!dbRes) return res.json({ status: 0, message: 'Comment does not exist!'});
+
+        const updatedPost = { ...dbRes._doc };
+        const updatedComm = updatedPost.comments.findIndex(comm => comm._id.toString() === comment_id.toString());
+        if(answer == 1) updatedPost.comments[updatedComm].likes = [ ...updatedPost.comments[updatedComm].likes, _id ];
+        else {
+            const filteredLikes = updatedPost.comments[updatedComm].likes.filter(like => like !== _id);
+            updatedPost.comments[updatedComm].likes = filteredLikes;
+        }
+
+        touchedPost = updatedPost;
+        globalPosts++;
+
+        // ====================== SUCCESS ======================
+        return res.json({ status: 1, message: 'Comment liked successfully!'});
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error liking comment!'});
     }
 });
 

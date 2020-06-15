@@ -17,7 +17,7 @@ const xoauth2 = require('xoauth2');
 const { gmail } = require(__dirname + '/../../config/gmailConfig');
 const { clientEndpoint } = require(__dirname + '/../../config/otherConfigs');
 const jwt = require('jsonwebtoken');
-const ObjectID = require('mongodb').ObjectID;
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const client = process.env.CLIENT || clientEndpoint;
 
@@ -119,22 +119,6 @@ router.delete('/logout', async(req,res) => {
     const deletedToken = await Refresh_Token.deleteOne({ refreshToken: token });
     if(!deletedToken) return res.json({ status: 0, msg: 'Error deleting token!'});
     return res.json({ status: 1, msg: 'User logged out!'});
-});
-
-// ====================== CHECK IF USER HAS A SESSION ======================
-router.get('/checkauth', isAuthenticated, async(req, res) => {
-    try {
-        // ====================== FIND LOGGED USER ======================
-        const loggedUser = await User.query().select('id', 'email', 'first_name', 'last_name', 'birthdate', 'created_at').findById(req.session.user.id);
-        if(!loggedUser) return res.json({ status: 0, msg: 'User not authorized!'});
-
-        // ====================== SEND BACK LOGGED USER ======================
-        return res.status(200).json({ status: 1, msg: 'User authorized!', user: loggedUser });
-    
-    // ====================== HANDLE ERROR ======================
-    } catch(err) {
-        return res.json({ status: 0, msg: 'User not authorized!'});
-    }
 });
 
 // ====================== RESET USER PASSWORD ======================
@@ -397,6 +381,29 @@ router.post('/register', (req, res) => {
         }
     });
         
+});
+
+// ====================== DELETE FRIEND ======================
+router.patch('/friend/delete/:id', isAuthenticated, async(req, res) => {
+    try {
+        // ====================== GET THE USER ID ======================
+        const { _id } = req.user;
+        if(!_id) return res.json({ status: 0, message: 'Missing id!', code: 404 });
+
+        // ====================== GET FRIEND ID ======================
+        const { id } = req.params;
+        if(!id) return res.json({ status: 0, message: 'Missing param id!', code: 404 });
+
+        // ====================== DELETE FRIEND ======================
+        await User.findOneAndUpdate({ _id }, { $pull: { friends: { friend_id: id } } }, { upsert: true, useFindAndModify: false });
+        await User.findOneAndUpdate({ _id: id }, { $pull: { friends: { friend_id: _id } } }, { upsert: true, useFindAndModify: false });
+
+        // ====================== EVERYTHING OK ======================s
+        return res.json({ status: 1, message: 'Deleted friend!' });
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error deleting friend!'});
+    }
 });
 
 module.exports = router;

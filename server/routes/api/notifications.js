@@ -24,9 +24,9 @@ router.get('/subscribe', async(req, res) => {
 
                 changedRequest = { ...touchedRequest};  
 
-                setTimeout(() => {
-                    touchedRequest = null;
-                }, 2000);
+                // setTimeout(() => {
+                //     touchedRequest = null;
+                // }, 2000);
 
                 localRequests = globalRequests;
                 return res.status(200).write(`data: ${JSON.stringify(changedRequest)}`  + '\n\n');
@@ -141,7 +141,7 @@ router.post('/answerFriendReq', isAuthenticated, async(req, res) => {
             setTimeout(() => {
                 touchedRequest = { ...acceptFriendReq, isNew: true };
                 globalRequests++;
-            }, 3500);
+            }, 1500);
         } 
         
         // ====================== DELETE REQ ======================
@@ -164,17 +164,17 @@ router.post('/answerFriendReq', isAuthenticated, async(req, res) => {
     }
 });
 
-router.post('/deleteNotification', isAuthenticated, async(req, res) => {
+router.post('/deleteNotification/:id', isAuthenticated, async(req, res) => {
     try {
         // ====================== GET THE USER ID ======================
         const { _id } = req.user;
         if(!_id) return res.json({ status: 0, message: 'Missing from id!', code: 404 });
 
-        // ====================== GET BODY ======================
-        const { _id: notifID } = req.body;
+        // ====================== GET NOTIFICATION ID ======================
+        const { id: notifID } = req.params;
 
         // ====================== DELETE REQ ======================
-        await User.findOneAndUpdate({ _id }, { $pull: { requests: { _id: ObjectId(notifID) } } }, { multi: true, upsert: true, useFindAndModify: false });
+        await User.findOneAndUpdate({ _id }, { $pull: { requests: { _id: ObjectId(notifID) } } }, { upsert: true, useFindAndModify: false });
         
         touchedRequest = { deletedNotifId: notifID.toString() };
         globalRequests++;

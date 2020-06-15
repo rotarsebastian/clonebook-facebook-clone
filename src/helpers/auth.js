@@ -189,3 +189,22 @@ export const getAccessToken = async(refreshToken) => {
         return { status: 0, message: 'Can not connect to the server', code: 999 };
     }
 };
+
+export const deleteFriend = async(friend_id, token) => {
+  try {
+    const options = {
+        method: 'PATCH',
+        headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+        }
+    };
+    const response = await fetch(usersEndpoint + `/friend/delete/${friend_id}`, options);
+    const data = await response.json();
+    return data;
+  }
+  catch(err) {
+    return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};
