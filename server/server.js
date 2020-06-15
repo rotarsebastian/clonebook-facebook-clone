@@ -33,18 +33,6 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/searchusers', (req,res) => {
-    const search = req.query.search;
-
-    const searchFor = new RegExp(search, 'i');
-
-    db.collection('users').find( { firstName: searchFor } ).toArray((err, result) => {
-        if(err) { return console.log('Database error reading elements')}
-        res.header('Access-Control-Allow-Origin', '*');
-        res.send(result);
-    });  
-})
-
 app.post('/posts', (req,res) => {
     const form = formidable({ multiples: true });
 

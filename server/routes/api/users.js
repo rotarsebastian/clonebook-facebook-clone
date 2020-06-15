@@ -111,6 +111,28 @@ router.patch('/', isAuthenticated, async(req, res) => {
     }
 });
 
+// ====================== SEARCH USERS  ======================
+router.get('/search', async(req,res) => {
+    try {
+        // ====================== GET THE SEARCH TEXT ======================
+        const { search } = req.query;
+        if(!search) return res.json({ status: 0, message: 'Missing search text!', code: 404 });
+
+        const searchFor = new RegExp(search, 'i');
+
+        // ====================== GET USERS ======================
+        const users = await User.find({ $or: [ { first_name: searchFor }, { last_name: searchFor }] })
+            .collation({ locale: 'en', strength: 2 })
+            .select('first_name last_name images');
+
+        // ====================== EVERYTHING OK ======================
+        return res.json({ status: 1, message: 'Search completed!', data: users });
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error searching users!'});
+    }
+})
+
 // ====================== LOGOUT ======================
 router.delete('/logout', async(req,res) => {
     const token = req.body.token;

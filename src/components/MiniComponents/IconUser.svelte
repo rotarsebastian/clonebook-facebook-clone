@@ -6,7 +6,7 @@
 <!-- ######################################## -->
 
 <ProfileImg size={2} />
-<div class="profileName">{user.firstName} {user.surname}</div>
+<div class="profileName">{user.first_name} {user.last_name}</div>
 
 <!-- ######################################## -->
 

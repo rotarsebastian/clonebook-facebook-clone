@@ -1,25 +1,35 @@
 <script>
     import IconUser from '../../MiniComponents/IconUser.svelte';
     import { url } from '@sveltech/routify';
-    
+    import { searchUsers } from './../../../helpers/auth.js';
+    import { store } from './../../../stores/store.js';
+    import { goto } from '@sveltech/routify';
+
     let ajUsers = [];
     let showingResults = false;
     let searchInput;
 
-    // Connect and get search results
     const getSearchData = async() => {
         const { value: search } = searchInput;
-        ajUsers = [];
-        // Get fresh data from API
-        let connection = await fetch(`http://localhost:9999/searchusers?search=${search}`);
-        let data = await connection.json();
-        ajUsers = data;
-        showingResults = true;
+        if(search.length > 1) {
+            ajUsers = [];
+            const response = await searchUsers(search, $store.accessToken);
+            ajUsers = response.data;
+            showingResults = true;
+        } else ajUsers = [];
     }
 
     const handleClickSearch = e => {
         e.stopPropagation();
-        getSearchData();
+        showingResults = true;
+    }
+
+    const handleRedirect = id => {
+        $goto(`./profile/${id}`);
+        // $goto('./profile', { id });
+        showingResults = false;
+        ajUsers = [];
+        searchInput.value = '';
     }
 
     window.addEventListener('click', () => {
@@ -34,11 +44,10 @@
     <div id="searchContainer">
         <form>
             <div class="inputContainer" on:click={handleClickSearch}>
-                <img class="searchIcon" class:open="{showingResults}" on:click={handleClickSearch} src="https://static.xx.fbcdn.net/rsrc.php/v3/yt/r/LZP5SAAuvu9.png" alt="logo" height="16" width="16" />
+                <img class="searchIcon" class:open={showingResults} on:click={handleClickSearch} src="https://static.xx.fbcdn.net/rsrc.php/v3/yt/r/LZP5SAAuvu9.png" alt="logo" height="16" width="16" />
                 <input type="text" 
-                    class:open="{showingResults}"
+                    class:open={showingResults}
                     on:input={getSearchData}
-                    on:focus={getSearchData}
                     bind:this={searchInput} 
                     placeholder="Search Facebook"
                     on:click={handleClickSearch} 
@@ -51,13 +60,13 @@
                     <span class="backArrow"></span>
                 </div>
                 <div class="resultsContainer">
-                    <div class="recentSearchContainer">Recent searches</div>
+                    <div class="recentSearchContainer">{ajUsers.length > 0 ? 'Users' : ''}</div>
                     <div class="results">
                         {#each ajUsers as ajUser}
-                            <div class="searchResultUser" on:click={() => {}} >
+                            <div class="searchResultUser" on:click={() => handleRedirect(ajUser._id)}>
                                 <IconUser user={ajUser} />
                                 <div class="deleteSearchContainer">
-                                    <span class="deleteSearchButton"></span>
+                                    <span class="deleteSearchButton" on:click={() => ajUsers = ajUsers.filter(user => user !== ajUser)}></span>
                                 </div>
                             </div>
                         {/each}
@@ -155,10 +164,10 @@
         opacity: 0;
         position: absolute;
         width: 130%;
-        height: 38vh;
         background: #fff;
         color: var(--black);
         padding: .2rem;
+        max-height: 38vh;
         padding-top: 0.75rem; 
         top: -.7rem;
         left: -3.6rem;
@@ -169,8 +178,8 @@
     }
 
     .leftContainer #searchContainer #searchResults .resultsContainer {
-        margin: 0 0.45rem;
-        margin-top: .5rem;
+        margin: .4rem 0.45rem;
+        margin-left: .85rem;
     }
 
     .leftContainer #searchContainer #searchResults .resultsContainer .recentSearchContainer {

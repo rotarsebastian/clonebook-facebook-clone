@@ -1,10 +1,15 @@
+
 <script>
-	import { store } from './../stores/store.js';
-    import { getAccessToken, getSpecificUser, deleteFriend } from './../helpers/auth';
-    import { sendFriendRequest } from './../helpers/notifications';
+	import { store } from './../../stores/store.js';
+    import { getAccessToken, getSpecificUser, deleteFriend } from './../../helpers/auth';
+    import { sendFriendRequest } from './../../helpers/notifications';
 	import { params } from '@sveltech/routify';
 	import moment from 'moment';
-	import { getNotificationsContext } from 'svelte-notifications';
+    import { getNotificationsContext } from 'svelte-notifications';
+
+    export let slug;
+
+    console.log($params, slug)
 
     const { addNotification } = getNotificationsContext();
 
@@ -20,7 +25,7 @@
 	let user_profile;
 	
 	const getUserData = async() => {
-        const result = await getSpecificUser($params.id, $store.accessToken);
+        const result = await getSpecificUser(slug, $store.accessToken);
 		user_profile = result.data;
 		
 		// ====================== CHECK IF TOKEN EXPIRED ======================
@@ -32,7 +37,7 @@
 				$store.user = user;
 				$store.accessToken = accessToken;
 
-				const result_new_token = await getSpecificUser($params.id, accessToken);
+				const result_new_token = await getSpecificUser(slug, accessToken);
 				user_profile = result_new_token.data;
 			} 
 		}
