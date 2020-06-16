@@ -5,11 +5,11 @@
     import Dialog from './../Modals/Dialog.svelte';
     import { like } from '../../helpers/icons.js';
     import { goto } from '@sveltech/routify';
-    import moment from 'moment';
     import { store } from './../../stores/store.js';
     import { editComment, likeComment } from './../../helpers/posts.js';
     import { getNotificationsContext } from 'svelte-notifications';
     import { validateForm } from './../../helpers/validation';
+    import { parseDate } from './../../helpers/dateParser';
 
     const { addNotification } = getNotificationsContext();
 
@@ -134,7 +134,7 @@
             <div class="actions">
                 <div class="like" on:click={handleLike} class:liked={liked === true}>Like</div>
                 <span>&nbsp;·&nbsp;</span>
-                <div class="timePassed">{moment(comment.date).format('HH:mm A')}</div>
+                <div class="timePassed">{parseDate(comment.date)}</div>
                 {#if comment.edited === true}
                     <span>&nbsp;·&nbsp;</span>
                     <div class="timePassed">Edited</div>

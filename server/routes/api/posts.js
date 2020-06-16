@@ -39,10 +39,29 @@ router.get('/subscribe', async(req, res) => {
     }
 });
 
-// ====================== GET USER POSTS ======================
-router.get('/:id', isAuthenticated, async(req, res) => {
+// ====================== GET POSTS FEED ======================
+router.get('/', isAuthenticated, async(req, res) => {
+    // const posts = await Post.find({ authorId: { $ne: req.user._id } }).sort('-date');
     const posts = await Post.find({}).sort('-date');
     return res.send(posts);
+});
+
+// ====================== GET USER POSTS ======================
+router.get('/:id', isAuthenticated, async(req, res) => {
+    try {
+        // ====================== GET THE USER ID ======================
+        const { id } = req.params;
+        if(!id) return res.json({ status: 0, message: 'Missing id!', code: 404 });
+
+        // ====================== GET USER POSTS ======================
+        const posts = await Post.find({ authorId: id }).sort('-date');
+
+        // ====================== SUCCESS ======================
+        return res.send(posts);
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error deleting post!'});
+    }
 });
 
 // ====================== CREATE POST ======================
@@ -86,7 +105,7 @@ router.post('/', isAuthenticated, (req, res) => {
             const createdPost = await Post.create(newPost);
             if(!createdPost) return res.json({ status: 0, message: 'Error while inserting post!', code: 404 });
 
-            touchedPost = { ...newPost, _id: createdPost._id, isNew: true };
+            touchedPost = { ...newPost, date: new Date(), _id: createdPost._id, isNew: true };
             globalPosts++;
             
             return res.json({ status: 1, property: newPost });
@@ -138,8 +157,17 @@ router.patch('/:id/:type/like', isAuthenticated, async(req, res) => {
         if(!id || !user_id) return res.json({ status: 0, message: 'Missing ids!', code: 404 });
 
         // ====================== LIKE POST ======================
-        const dbRes = type == 1 ? await Post.findOneAndUpdate({ _id: id }, { $addToSet: { likes: user_id  } }, { upsert: true, useFindAndModify: false })
-        : await Post.findOneAndUpdate({ _id: id }, { $pull: { likes: { $gte: user_id } } }, { upsert: true, useFindAndModify: false });
+        const dbRes = type == 1 
+        ? await Post.findOneAndUpdate(
+            { _id: id }, 
+            { $addToSet: { likes: user_id  } }, 
+            { upsert: true, useFindAndModify: false }
+        )
+        : await Post.findOneAndUpdate(
+            { _id: id }, 
+            { $pull: { likes: { $gte: user_id } } },
+            { upsert: true, useFindAndModify: false }
+        );
         if(!dbRes) return res.json({ status: 0, message: 'Post does not exist!'});
 
         const filteredLikes = dbRes._doc.likes.filter(like => like !== user_id);

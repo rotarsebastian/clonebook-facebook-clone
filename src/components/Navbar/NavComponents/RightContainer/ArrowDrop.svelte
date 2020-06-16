@@ -12,7 +12,9 @@
                 chatUserStore: null,
                 posts: [],
                 isAuthenticated: false,
-                user: undefined
+                user: {
+                    friends: []
+                }
             }
             $goto('../login');
         }

@@ -3,7 +3,6 @@
 	import { routes } from '@sveltech/routify/tmp/routes';
 	import Notifications from 'svelte-notifications';
 	import { goto } from '@sveltech/routify';
-
 	import { store } from './stores/store.js';
 	import { getAccessToken, getLoggedUserData } from './helpers/auth';
 

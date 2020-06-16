@@ -17,9 +17,7 @@
 
     let files = [];
 
-    const setNewFiles = newFiles => {
-        files = [ ...newFiles ];
-    }
+    const setNewFiles = newFiles => files = [ ...newFiles ];
     
     const capitalize = text => text.charAt(0).toUpperCase() + text.slice(1);
 	

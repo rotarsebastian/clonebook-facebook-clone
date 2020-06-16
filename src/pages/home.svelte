@@ -4,11 +4,11 @@
 	import ChatContainer from './../components/ChatContainer/ChatContainer.svelte';
 	import Modal from './../components/Modals/Modal.svelte';
 	import { store } from './../stores/store.js';
-	import { getUserPosts } from './../helpers/posts';
 	import { getAccessToken } from './../helpers/auth';
+	import { getFeedPosts } from './../helpers/posts';
 
 	const getPosts = async() => {
-		const posts = await getUserPosts($store.user._id, 0, $store.accessToken);
+		const posts = await getFeedPosts(0, $store.accessToken);
 
 		// ====================== CHECK IF TOKEN EXPIRED ======================
 		if(posts.hasOwnProperty('msg')) {
@@ -16,10 +16,9 @@
 			const { accessToken, user } = await getAccessToken(token);
 			if(accessToken) {
 				$store.isAuthenticated = true;
-				$store.user = user;
 				$store.accessToken = accessToken;
 
-				const postsNewToken = await getUserPosts($store.user._id, 0, accessToken);
+				const postsNewToken = await getFeedPosts(0, accessToken);
 				$store.posts = postsNewToken;
 				subscribePosts();
 			} 
@@ -38,7 +37,7 @@
 
 					if(updatedPost.hasOwnProperty('isNew')) {
 						delete updatedPost.isNew;
-						$store.posts = [ updatedPost, ...$store.posts ];
+						if($store.posts.findIndex(post => post._id === updatedPost._id) === -1) $store.posts = [ updatedPost, ...$store.posts ];
 					} 
 
 					else if(updatedPost.hasOwnProperty('deletedPostId')) {
@@ -57,30 +56,37 @@
 		});
 	}
 	
-	if($store.isAuthenticated) getPosts();
+	let dataLoaded;
+	if($store.isAuthenticated) dataLoaded = getPosts();
 	
 </script>
 
 <!-- ######################################## -->
 
-<Modal>
-	<main>
-		<div class="contentContainer">
-			<div class="groupsContainer">
-				<div class="hidden"></div>
-				<div class="groups">Groups</div>
+{#await dataLoaded}
+	<p>...waiting</p>
+{:then data}
+	<Modal>
+		<main>
+			<div class="contentContainer">
+				<div class="groupsContainer">
+					<div class="hidden"></div>
+					<div class="groups">Groups</div>
+				</div>
+				<div class="postsContainer">
+					<Posts />
+				</div>
+				<div class="chatlistContainer">
+					<div class="hidden"></div>
+					<div class="chatList"><ChatList /></div>
+				</div>
 			</div>
-			<div class="postsContainer">
-				<Posts />
-			</div>
-			<div class="chatlistContainer">
-				<div class="hidden"></div>
-				<div class="chatList"><ChatList /></div>
-			</div>
-		</div>
-		<ChatContainer />
-	</main>
-</Modal>
+			<ChatContainer />
+		</main>
+	</Modal>
+{:catch error}
+	<p style="color: red">{error.message}</p>
+{/await}
 
 <!-- ######################################## -->
 

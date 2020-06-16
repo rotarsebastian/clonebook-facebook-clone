@@ -1,30 +1,23 @@
 <script>    
     import IconUser from '../MiniComponents/IconUser.svelte';
     import { store } from '../../stores/store.js';
-
-    let contacts = [
-        {id: 1, firstName: 'Sebi', surname: 'Andrew'}, 
-        {id: 2, firstName: 'Sebi2', surname: 'Mike', signOutTime: '35min' }, 
-        {id: 3, firstName: 'Sebi3', surname: 'Thomas'}, 
-        {id: 4, firstName: 'Sebi4', surname: 'Andrew', signOutTime: '1h' }, 
-        {id: 5, firstName: 'Sebi5', surname: 'Andrew'}
-    ];
-    
+     
 </script>
 
 <!-- ######################################## -->
-
-<div id="activeChatList">
-    <div id="title">Contacts</div>
-    {#each contacts as contact}
-        <div class="activeUser" on:click={() => $store.chatUserStore = contact} >
-            <IconUser user={contact} />
-            {#if contact.hasOwnProperty('signOutTime')}
-                <span class="signOutTime">{contact.signOutTime}</span>
-            {/if}
-        </div>
-    {/each}
-</div>
+{#if $store.user.hasOwnProperty('friends') && $store.user.friends.length >= 0}
+    <div id="activeChatList">
+        <div id="title">Contacts</div>
+        {#each $store.user.friends as contact}
+            <div class="activeUser" on:click={() => $store.chatUserStore = contact} >
+                <IconUser user={contact} />
+                {#if contact.hasOwnProperty('signOutTime')}
+                    <span class="signOutTime">{contact.signOutTime}</span>
+                {/if}
+            </div>
+        {/each}
+    </div>
+{/if}
 
 <!-- ######################################## -->
 

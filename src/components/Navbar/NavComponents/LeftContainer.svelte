@@ -4,6 +4,7 @@
     import { searchUsers } from './../../../helpers/auth.js';
     import { store } from './../../../stores/store.js';
     import { goto } from '@sveltech/routify';
+    import { onMount } from 'svelte';
 
     let ajUsers = [];
     let showingResults = false;
@@ -25,8 +26,8 @@
     }
 
     const handleRedirect = id => {
-        $goto(`./profile/${id}`);
-        // $goto('./profile', { id });
+        $goto(`/profile?id=${id}`);
+        // $goto('/profile', { id });
         showingResults = false;
         ajUsers = [];
         searchInput.value = '';

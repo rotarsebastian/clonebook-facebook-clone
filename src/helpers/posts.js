@@ -2,6 +2,24 @@
 export const endpoint = 'http://localhost:9999/api';
 const postsEndpoint = endpoint + '/posts';
 
+export const getFeedPosts = async(offset, token) => {
+  try {
+    const options = {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }
+    };
+    const response = await fetch(postsEndpoint + `/?offset=${offset}`, options);
+    const data = await response.json();
+    return data;
+  }
+  catch(err) {
+    return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};
+
 export const getUserPosts = async(id, offset, token) => {
   try {
     const options = {

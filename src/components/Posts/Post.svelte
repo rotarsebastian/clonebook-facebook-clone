@@ -8,10 +8,10 @@
     import Slides from './../Modals/Slides.svelte';
     import { store } from './../../stores/store.js';
     import { goto } from '@sveltech/routify';
-    import moment from 'moment';
     import { editPost, likePost, addCommentToPost, removeComment } from './../../helpers/posts.js';
     import { validateForm } from './../../helpers/validation';
     import { getNotificationsContext } from 'svelte-notifications';
+    import { parseDate } from './../../helpers/dateParser';
 
     const { addNotification } = getNotificationsContext();
 
@@ -26,10 +26,11 @@
 
     export let id;
     export let onDelete;
+    export let propsPost = undefined;
 
     const { open } = getContext('simple-modal');
 
-    $: post = $store.posts.find(post => post._id === id);
+    $: post = propsPost ? propsPost : $store.posts.find(post => post._id === id);
 
     let seeComments, commInput, showDropdown = false, editDelete;
 
@@ -115,7 +116,7 @@
                 closeOnOuterClick: true,
 			}
 	  );
-    };
+    }
     
     const showFullscreenImgs = images => {
         open(
@@ -150,7 +151,7 @@
         <ProfileImg size={2} />
         <div class="nameContainer">
             <div class="name" on:click={() => $goto('../profile', { id: post.authorId })}>{post.author}</div>
-            <div class="time">{moment(post.date).format('HH:mm A')}</div>
+            <div class="time">{parseDate(post.date)}</div>
         </div>
         {#if post.authorId === $store.user._id}
             <div>

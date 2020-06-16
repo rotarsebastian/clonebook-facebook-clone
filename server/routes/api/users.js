@@ -330,7 +330,7 @@ router.post('/login', async(req, res) => {
                 const refresh_token = await Refresh_Token.create({ refreshToken });
                 if(!refresh_token) return res.json({ status: 0, message: 'Error while inserting refresh token!', code: 404 });
                 
-                return res.status(200).json({ status: 1, message: 'User logged in', accessToken, refreshToken, loggedUser, code: 200 });
+                return res.status(200).json({ status: 1, message: 'User logged in', accessToken, refreshToken, loggedUser: { ...loggedUser, friends: user._doc.friends }, code: 200 });
             }
         });
     // ====================== HANDLE ERROR ======================

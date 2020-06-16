@@ -8,6 +8,10 @@
 
     const { addNotification } = getNotificationsContext();
 
+    export let propsPosts = undefined;
+
+    $: posts = propsPosts ? propsPosts : $store.posts;
+
     const showNotification = (type, text) => {
         return addNotification({
             text,
@@ -54,16 +58,18 @@
 
 <!-- ######################################## -->
 
-{#if $store.posts.length === 0}
+{#if posts.length === 0}
     <div>waiting...</div>
 {/if}
 
-{#if $store.posts.length > 0}
+{#if posts.length > 0}
     <div class="postsContainer">
-        <CreatePost createPost={createPost} />
+        {#if !propsPosts}
+            <CreatePost createPost={createPost} />
+        {/if}
         <div class="posts">
-            {#each $store.posts as post}
-                <Post onDelete={deletePost} id={post._id} />
+            {#each posts as post}
+                <Post onDelete={deletePost} id={post._id} propsPost={post} />
             {/each}
         </div>
     </div>
