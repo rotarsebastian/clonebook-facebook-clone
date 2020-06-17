@@ -1,9 +1,11 @@
 <script>
 	import { store } from './../stores/store.js';
-    import { getAccessToken, getSpecificUser, deleteFriend } from './../helpers/auth';
-    import { sendFriendRequest } from './../helpers/notifications';
-	import moment from 'moment';
+    import { getAccessToken, getSpecificUser, updateProfile } from './../helpers/auth';
+	import ProfileImage from './../components/MiniComponents/ProfileImage.svelte';
+	import AddImages from './../components/MiniComponents/AddImages.svelte';
+	import Thumb from './../components/MiniComponents/Thumb.svelte';
 	import { getNotificationsContext } from 'svelte-notifications';
+	import { validateForm } from './../helpers/validation';
 	
     const { addNotification } = getNotificationsContext();
 
@@ -16,71 +18,194 @@
         });
     }
     
-	let user_profile, editButtonDisabled = true;
-	
-	const getUserData = async() => {
-        const result = await getSpecificUser($store.user._id, $store.accessToken);
-		user_profile = result.data;
-		
-		// ====================== CHECK IF TOKEN EXPIRED ======================
-		if(user_profile.hasOwnProperty('msg')) {
-			const token = localStorage.getItem('refreshToken');
-			const { accessToken, user } = await getAccessToken(token);
-			if(accessToken) {
-				$store.isAuthenticated = true;
-				$store.user = user;
-				$store.accessToken = accessToken;
+	let first_name = $store.user.first_name, last_name = $store.user.last_name;
 
-				const result_new_token = await getSpecificUser($store.user._id, accessToken);
-				user_profile = result_new_token.data;
-			} 
-		}
+	$: buttonDisabled = $store.selectedProfileImage ? false : true
+
+	let profile_image = $store.user.images[0];
+	let oldImages = $store.user.images;
+	let newImages = [];
+
+	const setNewImages = files => {
+		newImages = [ ...files ];
+		buttonDisabled = false;
+	}
+
+	const removeOldImage = index => {
+        const newFiles = [ ...oldImages ];
+		newFiles.splice(index, 1);
+		oldImages = [ ...newFiles ];
+		buttonDisabled = false;
 	}
 	
-	const userData = getUserData();
+	const editProfile = async() => {
+		// ====================== VALIDATION ======================
+        const editProfileData = [ 
+            { type: 'first_name', val: first_name }, 
+			{ type: 'last_name', val: last_name },
+			{ type: 'images', val: JSON.stringify(oldImages) }
+        ];
+
+        const isFormValid = validateForm(editProfileData);
+		if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
+		
+		// ====================== CREATE NEW REQUEST FORM DATA ======================
+        const requestData = new FormData();
+
+		// ====================== APPEND JSON DATA AND IMAGES ======================
+        requestData.append('data', JSON.stringify(editProfileData));
+		newImages.map(file => requestData.append('image', file, file.name));
+		
+		// ====================== GET THE PROFILE IMAGE ======================
+		let newProfileImage;
+
+		if($store.selectedProfileImage !== null) {
+			if($store.selectedProfileImage.includes('blob')) {
+				newProfileImage = newImages.findIndex(img => img.preview === $store.selectedProfileImage);
+			} else {
+				newProfileImage = oldImages.find(img => img === $store.selectedProfileImage);
+			}
+		}
+		const res = newProfileImage !== undefined ? await updateProfile(requestData, $store.accessToken, newProfileImage) : await updateProfile(requestData, $store.accessToken);
+		
+        // ====================== RESPONSE ======================
+        if(res.status === 1) {
+			$store.user = { ...$store.user, ...res.updatedUser };
+			$store.selectedProfileImage = null;
+			newImages = [];
+			oldImages = $store.user.images;
+            return showNotification('success', 'Profile edited successfully!');
+        } 
+	}
+	
 	
 </script>
 
-{#await userData}
-	<p>...waiting</p>
-{:then data}
-    <div class="contentContainer">
-        <h1>Edit profile</h1>        
-        <div>{user_profile.first_name} {user_profile.last_name}</div>
-        <div>Gender: {user_profile.gender}</div>
-        <div>Birthdate: {user_profile.birthdate}</div>
-        <div>Joined on: {moment(user_profile.date).format('MMM YYYY')}</div>
-        <button class="friendRequestButton" class:disabled={editButtonDisabled} disabled={editButtonDisabled}>
-            Edit profile
-        </button>
-    </div>
-{:catch error}
-	<p style="color: red">{error.message}</p>
-{/await}
+<div class="contentContainer">
+	<ProfileImage size={15} img={$store.user.images && $store.user.images.length > 0 ? $store.user.images[0] : undefined} />
+	<div class="userFullName">{$store.user.first_name} {$store.user.last_name}</div>
+
+	<div class="inputContainer">
+		<label for="first_name">First name</label>
+		<input 
+			class="input" 
+			id="first_name" 
+			name="first_name" 
+			type="text" 
+			placeholder="Your first name" 
+			bind:value={first_name} 
+			on:input={() => buttonDisabled = false} 
+		/>
+	</div>
+
+	<div class="inputContainer">
+		<label for="last_name">Last name</label>
+		<input 
+			class="input last" 
+			id="last_name" 
+			name="last_name" 
+			type="text" 
+			placeholder="Your last name" 
+			bind:value={last_name} 
+			on:input={() => buttonDisabled = false} 
+		/>
+	</div>
+
+	<p class="addRemoveImages">Add / Remove profile images</p>
+	<div class="thumbsContainer">
+		{#each oldImages as image, index}
+			<Thumb removeImage={removeOldImage} oldImage={image} index={index} />
+		{/each}
+		<AddImages files={newImages} setNewFiles={setNewImages} />
+	</div>
+
+	<p class="infoContainer"><span>Info:</span>Click on the images to change your profile picture. You can add maximum 5 new pictures at once</p>
+
+	<button class="editProfileButton" on:click={editProfile} class:disabled={buttonDisabled} disabled={buttonDisabled}>
+		Save changes
+	</button>
+</div>
 
 <style>
 	.contentContainer {
 		display: flex;
         align-items: center;
         flex-direction: column;
-		margin-top: 5rem;
-    }
+		margin-top: 5.5rem;
+	}
 
-    .friendRequestButton {
+	.userFullName {
+		color: var(--black);
+		font-weight: bold;
+		font-size: 1.7rem;
+		margin: 2rem 0;
+	}
+
+	.addRemoveImages {
+		color: var(--grey);
+		margin-top: 2rem;
+		font-size: 1.35rem;
+		margin-bottom: 2rem;
+	}
+	.infoContainer {
+		color: var(--grey);
 		margin-top: 1rem;
+		font-size: .9rem;
+	}
+
+	.infoContainer span {
+		font-weight: bold;
+		margin-right: .2rem;
+	}
+
+	.thumbsContainer {
+        display: flex;
+        flex-wrap: wrap;
+		justify-content: center;
+		margin: 0 5rem;
+	}
+
+	.editProfileButton {
 		background-color: rgb(24, 119, 242);
-		border-radius: 6px;
+		border-radius: 8px;
 		border: none;
 		color: #fff;
 		cursor: pointer;
-		font-size: 14px;
+		font-size: 15px;
 		line-height: 16.08px;
-		padding: 6px 16px;
+		padding: .55rem 1.25rem;
 		user-select: none;
 		outline: none;
+		display: flex;
+		align-items: center;
+		margin-top: 1rem;
 	}
 
-	.friendRequestButton.disabled {
+	.editProfileButton.disabled {
 		opacity: .5;
 	}
+
+	.inputContainer input {
+		width: 100%;
+        background-color: #fff;
+        border-radius: 5px;
+        border: 1px solid rgb(189, 199, 216);
+        color: rgb(28, 30, 33);
+        font-size: 17px;
+        overflow-wrap: break-word;
+        padding: 8px 10px;
+		margin-bottom: .75rem;
+		margin-top: .35rem;
+	}
+
+	.inputContainer input.last {
+		margin-bottom: 0;
+	}
+
+	.inputContainer label {
+		color: var(--grey);
+		font-size: 1rem;
+		margin-left: .5rem;
+	}
+
 </style>

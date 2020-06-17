@@ -38,13 +38,28 @@ const upload = multer({
     })
 });
 
-const removeImages = async(removedImages) => {
+const uploadProfile = multer({
+    fileFilter,
+    storage: multerS3({
+        s3: s3,
+        bucket: 'clonebook',
+        acl: 'public-read',
+        metadata: function (req, file, cb) {
+            cb(null, { fieldName: 'TESTING_METADATA' });
+        },
+        key: function (req, file, cb) {
+            cb(null, `profiles/${uuid()}.jpeg`)
+        }
+    })
+});
+
+const removeImages = async(removedImages, from) => {
     if(removedImages && removedImages.length === 0) return { status: 1, message: 'No images to remove!' };
     
     try {
         const imgsToRemove = [];
         
-        removedImages.forEach(img => imgsToRemove.push({ Key: img.slice(-41) }));
+        removedImages.forEach(img => imgsToRemove.push({ Key: `${from}/${img.slice(-41)}` }));
     
         const s3Res = await s3.deleteObjects({
             Bucket: 'clonebook',
@@ -55,8 +70,8 @@ const removeImages = async(removedImages) => {
 
         if(s3Res && s3Res.Deleted && s3Res.Deleted.length > 0) return { status: 1, message: 'Images removed successfully!', deleted: s3Res.Deleted };
     } catch (error) {
-        return { status: 0, message: 'S3 Error deleting images', code: 404 };
+        return { status: 0, message: 'S3 Error deleting images', error, code: 404 };
     }
 } 
 
-module.exports = { upload, removeImages };
+module.exports = { upload, uploadProfile, removeImages };

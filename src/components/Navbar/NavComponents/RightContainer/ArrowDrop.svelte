@@ -8,15 +8,16 @@
         const response = await logout(localStorage.getItem('refreshToken'));
         if(response.status === 1) {
             localStorage.removeItem('refreshToken');
+            $goto('../login');
             $store = {
                 chatUserStore: null,
                 posts: [],
                 isAuthenticated: false,
                 user: {
-                    friends: []
+                    friends: [],
+                    images: []
                 }
             }
-            $goto('../login');
         }
     }
 

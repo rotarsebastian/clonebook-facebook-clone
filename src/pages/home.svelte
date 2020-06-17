@@ -6,6 +6,13 @@
 	import { store } from './../stores/store.js';
 	import { getAccessToken } from './../helpers/auth';
 	import { getFeedPosts } from './../helpers/posts';
+	import { onDestroy } from 'svelte';
+
+	let eventSource;
+
+	onDestroy(() => {
+		if(eventSource) eventSource.close();
+	});
 
 	const getPosts = async() => {
 		const posts = await getFeedPosts(0, $store.accessToken);
@@ -29,7 +36,7 @@
 	}
 	
 	const subscribePosts = async() => {
-		const eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
+		eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
 		eventSource.addEventListener('message', e => {
 			try {
 				if(e.data !== '0') { 
@@ -63,7 +70,7 @@
 
 <!-- ######################################## -->
 
-{#await dataLoaded}
+{#await $store.isAuthenticated && $store.posts}
 	<p>...waiting</p>
 {:then data}
 	<Modal>

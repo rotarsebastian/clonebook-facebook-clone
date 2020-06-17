@@ -2,8 +2,6 @@
 const router = require('express').Router();
 const { isAuthenticated } = require(__dirname + '/../../helpers/auth');
 const { handleInitialFormCheck } = require(__dirname + '/../../helpers/requestCheck');
-const moment = require('moment');
-const User = require(__dirname + '/../../models/User');
 const Post = require(__dirname + '/../../models/Post');
 const { upload, removeImages } = require(__dirname + '/../../helpers/handleImages');
 const { isJSON } = require(__dirname + '/../../helpers/validation');
@@ -130,7 +128,7 @@ router.delete('/:id', isAuthenticated, async(req, res) => {
         if(post._doc.authorId !== req.user._id) return res.json({ status: 0, message: 'Unauthorized!', code: 404 });
 
         // ====================== DELETE IMAGES FROM AWS ======================
-        const awsRes = await removeImages(post._doc.imgs);
+        const awsRes = await removeImages(post._doc.imgs, 'posts');
         if(awsRes.status === 0) return awsRes;
 
         // ====================== DELETE POST ======================
@@ -189,6 +187,9 @@ router.patch('/:id', isAuthenticated, async(req, res) => {
         // ====================== GET THE POST ID ======================
         const { id } = req.params;
         if(!id) return res.json({ status: 0, message: 'Missing id!', code: 404 });
+
+        // ====================== VALIDATE TEXT ======================
+        if(req.body.text.length < 1 || req.body.text.length > 800) return res.json({ status: 0, message: 'Invalid text!', code: 404 });
 
         // ====================== GET THE POST AUTHOR ID ======================
         const post = await Post.findById({ _id: id }).select('authorId');
@@ -251,6 +252,9 @@ router.patch('/:id/comment/:comment_id', isAuthenticated, async(req, res) => {
         // ====================== GET THE POST AND COMMENT ID ======================
         const { id, comment_id } = req.params;
         if(!id || !comment_id) return res.json({ status: 0, message: 'Missing ids!', code: 404 });
+
+        // ====================== VALIDATE TEXT ======================
+        if(req.body.text.length < 1 || req.body.text.length > 800) return res.json({ status: 0, message: 'Invalid text!', code: 404 });
 
         // ====================== GET THE COMMENT AUTHOR ID ======================
         const commDB = await Post.findOne({ _id: id }).select({ comments: { $elemMatch: { _id: ObjectId(comment_id) } }});

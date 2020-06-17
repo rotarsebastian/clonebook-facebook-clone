@@ -5,7 +5,7 @@
 	import { goto } from '@sveltech/routify';
 	import { store } from './stores/store.js';
 	import { getAccessToken, getLoggedUserData } from './helpers/auth';
-
+	
 	const checkAuth = async() => {
 		const token = localStorage.getItem('refreshToken');
 		const { accessToken, user } = await getAccessToken(token);
@@ -13,11 +13,11 @@
 			$store.isAuthenticated = true;
 			$store.accessToken = accessToken;
 			const loggedUserData = await getLoggedUserData(accessToken);
-			// console.log(loggedUserData.data);
 			$store.user = loggedUserData.data;
 		} 
 	}
-    
+
+
 	const isLoggedIn = checkAuth();
 </script>
 

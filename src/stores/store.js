@@ -5,7 +5,9 @@ export let store = writable({
     posts: [],
     isAuthenticated: false,
     user: {
-        friends: []
+        friends: [],
+        images: []
     },
-    notifications: []
+    notifications: [],
+    selectedProfileImage: null
 });

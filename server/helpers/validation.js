@@ -23,6 +23,8 @@ const validateInput = (type, value) => {
             return value.length >= 4 && value.length <= 6 && /^[\p{L} .'-]+$/u.test(value);
         case 'birthdate':
             return value.length === 10 && /^\d{4}-((0\d)|(1[012]))-(([012]\d)|3[01])$/.test(value);
+        case 'images':
+            return typeof value === 'string' && isJSON(value)
 
         // ====================== POST VALIDATION ======================
         case 'author':
@@ -49,6 +51,9 @@ const validateFormType = (validFormElements, type) => {
             return JSON.stringify(validFormElements) === JSON.stringify([ 'email' ]);
         case 'resetpass':
             return JSON.stringify(validFormElements) === JSON.stringify([ 'password', 'password' ]);
+        case 'editUser':
+            return JSON.stringify(validFormElements) === JSON.stringify([ 'first_name', 'last_name', 'images' ]);
+  
         case 'edit':
             return true;
 

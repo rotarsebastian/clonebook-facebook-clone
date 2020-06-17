@@ -58,27 +58,27 @@
         </div>
     </div>
 
-    <div class="friendSection">
-        {#if $store.user.friends.findIndex(friend => friend.friend_id === user_profile._id) !== -1}
-            <button class="friendRequestButton" on:click={handleUnfriend}>
-                Unfriend
-            </button>
-            {:else if $store.user._id === user_profile._id}
-                <button class="friendRequestButton" on:click={() => $goto('editProfile')}>
-                    Edit profile
-                </button>
-            {:else if $store.notifications.findIndex(notif => notif.type === 'sentreq' && notif.to === user_profile._id) > -1}
-                <button class:disabled={true} disabled={true} class="friendRequestButton" on:click={handleFriendRequest}>
-                    <img class="white" src="https://static.xx.fbcdn.net/rsrc.php/v3/yp/r/gXDMGXp9zDk.png" alt="" height="16" width="16">
-                    Request sent
-                </button>
-            {:else}
-            <button class="friendRequestButton" on:click={handleFriendRequest}>
-                <img src="https://static.xx.fbcdn.net/rsrc.php/v3/ys/r/j7eGuw2gtsv.png" width="16" height="16" alt="">
-                Add friend
-            </button>
-        {/if}
-    </div>
+	<div class="friendSection">
+		{#if $store.user.friends.findIndex(friend => friend.friend_id === user_profile._id) !== -1}
+			<button class="friendRequestButton" on:click={handleUnfriend}>
+				Unfriend
+			</button>
+			{:else if $store.user._id === user_profile._id}
+				<button class="friendRequestButton" on:click={() => $goto('editProfile')}>
+					Edit profile
+				</button>
+			{:else if $store.notifications.findIndex(notif => notif.type === 'sentreq' && notif.to === user_profile._id) > -1}
+				<button class:disabled={true} disabled={true} class="friendRequestButton" on:click={handleFriendRequest}>
+					<img class="white" src="https://static.xx.fbcdn.net/rsrc.php/v3/yp/r/gXDMGXp9zDk.png" alt="" height="16" width="16">
+					Request sent
+				</button>
+			{:else}
+			<button class="friendRequestButton" on:click={handleFriendRequest}>
+				<img src="https://static.xx.fbcdn.net/rsrc.php/v3/ys/r/j7eGuw2gtsv.png" width="16" height="16" alt="">
+				Add friend
+			</button>
+		{/if}
+	</div>
 </div>
 
 <!-- ######################################## -->

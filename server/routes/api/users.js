@@ -7,7 +7,7 @@ const Refresh_Token = require(__dirname + '/../../models/RefreshToken');
 const { isAuthenticated, generateAccessToken } = require(__dirname + '/../../helpers/auth');
 const { handleInitialFormCheck } = require(__dirname + '/../../helpers/requestCheck');
 const { constructActivationEmail, constructForgotCredentialsEmail } = require(__dirname + '/../../helpers/mails');
-const { editUser } = require(__dirname + '/../../helpers/dbqueries');
+const { isJSON } = require(__dirname + '/../../helpers/validation');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const { uuid, isUuid } = require('uuidv4');
@@ -18,6 +18,9 @@ const { gmail } = require(__dirname + '/../../config/gmailConfig');
 const { clientEndpoint } = require(__dirname + '/../../config/otherConfigs');
 const jwt = require('jsonwebtoken');
 const ObjectId = require('mongoose').Types.ObjectId;
+const { uploadProfile, removeImages } = require(__dirname + '/../../helpers/handleImages');
+
+const multipleUpload = uploadProfile.array('image', 10); // MAXIMUM 10 IMAGES AT ONCE
 
 const client = process.env.CLIENT || clientEndpoint;
 
@@ -44,7 +47,7 @@ router.get('/loggedUser', isAuthenticated, async(req, res) => {
         if(!_id) return res.json({ status: 0, message: 'Missing id!', code: 404 });
 
         // ====================== GET THE USER ======================
-        const user = await User.findById(_id);
+        const user = await User.findById(_id).select('-password');
         if(!user) return res.json({ status: 0, message: 'User does not exists!', code: 404 });
         
         // ====================== EVERYTHING OK ======================s
@@ -82,7 +85,7 @@ router.delete('/', isAuthenticated, async(req, res) => {
         if (!user) return res.json({ status: 0, message: 'Error deleting the user!'});
 
         req.session.destroy(err => {
-            if(err) return res.json({ status: 0, message: 'Error while trying to logout user!', code: 404 });
+            if(err) return res.json({ status: 0, message: 'Error while trying to delete user!', code: 404 });
     
             // ====================== CLEAR USER COOKIE ======================
             res.clearCookie('user_sid');
@@ -97,17 +100,88 @@ router.delete('/', isAuthenticated, async(req, res) => {
 });
 
 // ====================== EDIT USER PROFILE ======================
-router.patch('/', isAuthenticated, async(req, res) => {
+router.patch('/', isAuthenticated, (req, res) => {
     try {
-        // ====================== HANDLE INITIAL CHECK ======================
-        const initialCheckRes = handleInitialFormCheck(req.body, 'edit', 3);
-        if(initialCheckRes.status !== 1) return res.json(initialCheckRes);
+        // ====================== UPLOAD IMGS TO S3 ======================
+        multipleUpload(req, res, async(err) => {
+            if(err) return res.status(422).json({ errors: [{ title: 'Image Upload Error', detail: err.message }]});
 
-        // ====================== MAKE REQUEST TO EDIT USER PROFILE ======================
-        const updateResult = await editUser([ ...req.body ], req.session.user.id);
-        res.json(updateResult);
-    } catch(err) {
-        return res.json({ status: 0, msg: 'Error updating user profile!'});
+            // ====================== IMAGES REMOVE IN CASE OF ERROR ======================
+            const errorRemoveImgs = [];
+            if(req.files.length > 0) req.files.forEach(img => errorRemoveImgs.push(img.location.slice(-41)));
+
+            // ====================== CHECK DATA TYPE ======================
+            if(typeof req.body.data !== 'string' || !isJSON(req.body.data)) {
+                if(errorRemoveImgs.length > 0) removeImages(errorRemoveImgs);
+                return res.json({ status: 0, message: 'Invalid request!', code: 404 });
+            }
+
+            //  ====================== HANDLE INITIAL CHECK FOR STRING DATA ======================
+            const initialCheckRes = handleInitialFormCheck(JSON.parse(req.body.data), 'editUser', 3);
+            if(initialCheckRes.status !== 1) {
+                if(errorRemoveImgs.length > 0) removeImages(errorRemoveImgs);
+                return res.json(initialCheckRes);
+            }
+
+            // ====================== CHECK IF IT IS THE RIGHT USER ======================
+            const loggedUser = await User.findById({ _id: req.user._id }).select('images');
+            if(!loggedUser) {
+                if(errorRemoveImgs.length > 0) removeImages(errorRemoveImgs);
+                return res.json({ status: 0, message: 'User unauthorized!', code: 404 });
+            }
+
+            // ====================== GET QUERY ======================
+            const { new: newProfileImg } = req.query;
+
+            // ====================== CREATE UPDATED USER OBJECT ======================
+            let updatedUser = {};
+            const data = JSON.parse(req.body.data);
+
+            data.map(e => e.type !== 'images' ? updatedUser[e.type] = e.val : false);
+            updatedUser.images = JSON.parse(data[data.length - 1].val);
+
+            // ====================== DELETE REMOVED IMAGES FROM S3 - IF ANY ======================
+            const removedPhotos = loggedUser._doc.images.filter(img => { 
+                if(updatedUser.images.indexOf(img) < 0) return img;
+            });
+            removeImages(removedPhotos, 'profiles');
+            
+            // ====================== ADD NEW IMAGES ======================
+            let imgs = [];
+            req.files.map(img => imgs.push(img.location.slice(-41)));
+
+            // ====================== IF NEW PROFILE PICTURE ======================
+            if(newProfileImg !== undefined) {
+
+                // ====================== NEW PROFILE PIC IS FROM NEW IMAGES ======================
+                if(newProfileImg.length === 1) {
+                    const profileImage = imgs[newProfileImg];
+                    updatedUser.images = [ profileImage, ...updatedUser.images ];
+                    imgs.splice(newProfileImg, 1);
+                } 
+                
+                // ====================== OR FROM OLD IMAGES ======================
+                else {
+                    const indexNewProfileImg = updatedUser.images.findIndex(img => img === newProfileImg);
+                    updatedUser.images[indexNewProfileImg] = updatedUser.images[0];
+                    updatedUser.images[0] = newProfileImg;
+                }
+            }
+
+            // ====================== ADD NEW IMAGES ======================
+            updatedUser.images = [ ...updatedUser.images, ...imgs ]; // ADD NEW IMAGES
+
+            // ====================== UPDATE THE USER ======================
+            const updatedUserDB = await User.findOneAndUpdate({ _id: req.user._id }, updatedUser, { upsert: true, useFindAndModify: false });
+            if(!updatedUserDB) {
+                if(errorRemoveImgs.length > 0) removeImages(errorRemoveImgs);
+                return res.json({ status: 0, message: 'Error while updating user - DB!', code: 404 });
+            }
+            
+            return res.json({ status: 1, message: 'User edited successfully!', updatedUser });
+        });
+    } catch(e) {
+        return res.json({ status: 0, message: 'Error updating user!'});
     }
 });
 
@@ -329,8 +403,10 @@ router.post('/login', async(req, res) => {
 
                 const refresh_token = await Refresh_Token.create({ refreshToken });
                 if(!refresh_token) return res.json({ status: 0, message: 'Error while inserting refresh token!', code: 404 });
+
+                const { password, ...rest } = user._doc;
                 
-                return res.status(200).json({ status: 1, message: 'User logged in', accessToken, refreshToken, loggedUser: { ...loggedUser, friends: user._doc.friends }, code: 200 });
+                return res.status(200).json({ status: 1, message: 'User logged in', accessToken, refreshToken, loggedUser: rest, code: 200 });
             }
         });
     // ====================== HANDLE ERROR ======================

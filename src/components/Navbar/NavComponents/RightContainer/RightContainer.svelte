@@ -7,6 +7,13 @@
     import MessagesDrop from './MessagesDrop.svelte';
     import NotificationsDrop from './NotificationsDrop.svelte';
     import { getUserNotifications } from './../../../../helpers/notifications.js';
+    import { onDestroy } from 'svelte';
+
+    let eventSource;
+
+	onDestroy(() => {
+		if(eventSource) eventSource.close();
+	});
 
     const iconsContainer = ['create minimize', 'messages', 'notifications', 'dropdown minimize'];
 
@@ -22,13 +29,14 @@
     }
     
     const subscribeNotif = async() => {
-		const eventSource = new EventSource('http://localhost:9999/api/notifications/subscribe');
+        eventSource = new EventSource('http://localhost:9999/api/notifications/subscribe');
+        
 		eventSource.addEventListener('message', e => {
 			try {
 				if(e.data !== '0') { 
                     const updatedNotif = JSON.parse(e.data);
                     if(updatedNotif.type === 'sentreq') return;
-                    // ====================== CHECK IF REQUEST MATCHES THE FOR ======================
+                    // ====================== CHECK IF REQUEST MATCHES THE USER ======================
                     if(updatedNotif.to === $store.user._id) { 
                         if(updatedNotif.hasOwnProperty('isNew')) {
                             delete updatedNotif.isNew;
@@ -62,7 +70,6 @@
 	}
 
     getUserNotif();
-
 
     const handleOpenMenu = (e, menu) => {
         e.stopPropagation();

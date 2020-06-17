@@ -1,3 +1,12 @@
+const isJSON = str => {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
 export const validateForm = formElements => {
     let formIsValid = true;
     let invalids = [];
@@ -26,6 +35,8 @@ export const validateInputValue = (type, value) => {
             return value.length >= 4 && value.length <= 6 && /^[\p{L} .'-]+$/u.test(value);
         case 'birthdate':
             return value.length === 10 && /^\d{4}-((0\d)|(1[012]))-(([012]\d)|3[01])$/.test(value);
+        case 'images':
+            return typeof value === 'string' && isJSON(value)
 
         // ====================== POST VALIDATION ======================
         case 'author':

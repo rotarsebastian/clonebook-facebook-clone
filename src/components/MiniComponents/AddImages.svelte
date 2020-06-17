@@ -2,7 +2,19 @@
     export let files;
     export let setNewFiles;
 
-    import CloseButton from './CloseButton.svelte';
+    import Thumb from './Thumb.svelte';
+    import { getNotificationsContext } from 'svelte-notifications';
+	
+    const { addNotification } = getNotificationsContext();
+
+    const showNotification = (type, text) => {
+        return addNotification({
+            text,
+            position: 'bottom-right',
+            type,
+            removeAfter: 3000,
+        });
+    }
 
     const addImages = e => {
         const inputImages = Array.from(e.target.files);
@@ -12,9 +24,14 @@
             return Object.assign(file, { preview: URL.createObjectURL(file) } )
         });
 
+        if(inputImages.length !== newImages.length) showNotification('warning', 'You uploaded duplicates! Only the new images will be added!');
+
         let updateImages = [ ...files, ...newImages ];
 
-        if(updateImages.length > 5) updateImages = updateImages.filter((img, index) => index < 5);
+        if(updateImages.length > 5) {
+            updateImages = updateImages.filter((img, index) => index < 5);
+            showNotification('warning', 'Too many images! Only first 5 images are kept')
+        }
 
         setNewFiles(updateImages);
     }
@@ -31,12 +48,7 @@
 <span class="thumbsContainer">
 
     {#each files as file, index}
-        <div class="thumb">
-            <CloseButton top={0.5} right={0.5} close={() => removeImage(index)} />
-            <div class="thumbInner">
-                <img src={file.preview} alt={'thumb-img'} />
-            </div>
-        </div>
+        <Thumb removeImage={removeImage} preview={file.preview} index={index} />
     {/each}
 
     {#if files.length < 5}
@@ -83,24 +95,5 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-    }
-
-    .thumb {
-        display: inline-flex;
-        margin: 8px;
-        width: auto;
-        height: 150px;
-        position: relative;
-    }
-
-    .thumbInner {
-        width: 13rem;
-    }
-
-    .thumbInner img {
-        object-fit: cover;
-        width: 100%;
-        height: 100%;
-        border-radius: 10px;
     }
 </style>

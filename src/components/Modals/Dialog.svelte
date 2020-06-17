@@ -70,6 +70,7 @@
         height: 5rem;
         outline: none;
         font-size: .85rem;
+        font-family: system-ui, -apple-system, system-ui, ".SFNSText-Regular", sans-serif;
     }
 
     textarea::placeholder {

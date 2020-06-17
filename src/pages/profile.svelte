@@ -9,6 +9,13 @@
 	import Posts from './../components/Posts/Posts.svelte';
 	import { getUserPosts } from './../helpers/posts';
 	import Modal from './../components/Modals/Modal.svelte';
+	import { onDestroy } from 'svelte';
+
+	let eventSource;
+
+	onDestroy(() => {
+		if(eventSource) eventSource.close();
+	});
 
 	let user_profile, user_posts;
 
@@ -31,7 +38,7 @@
 	}
 	
 	const subscribePosts = async() => {
-		const eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
+		eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
 		eventSource.addEventListener('message', e => {
 			try {
 				if(e.data !== '0') { 
@@ -95,7 +102,7 @@
 			<ProfileImage size={15} img={user_profile.images && user_profile.images.length > 0 ? user_profile.images[0] : undefined} />
 			<div class="userFullName">{user_profile.first_name} {user_profile.last_name}</div>
 			<ProfileIntro {user_profile} />
-			<h3 class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</h3>
+			<p class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</p>
 			<Posts propsPosts={user_posts} />
 		</div>
 	</Modal>

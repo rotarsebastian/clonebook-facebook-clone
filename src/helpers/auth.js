@@ -55,6 +55,7 @@ export const logout = async(token) => {
       return data;
     }
     catch(err) {
+      console.log(err, 'err');
       return { status: 0, message: 'Can not connect to the server', code: 999 };
     }
 };
@@ -219,6 +220,26 @@ export const searchUsers = async(search, token) => {
         }
     };
     const response = await fetch(usersEndpoint + `/search?search=${search}`, options);
+    const data = await response.json();
+    return data;
+  }
+  catch(err) {
+    return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};
+
+export const updateProfile = async(editData, token, newProfileImage) => {
+  try {
+    let newProfilePic = newProfileImage !== undefined ? `?new=${newProfileImage}` : '';
+    const options = {
+      method: 'PATCH',
+      headers: {
+        'Accept': '*/*',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: editData
+    };
+    const response = await fetch(usersEndpoint + newProfilePic, options);
     const data = await response.json();
     return data;
   }
