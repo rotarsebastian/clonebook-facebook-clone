@@ -29,6 +29,8 @@ const validateInput = (type, value) => {
         // ====================== POST VALIDATION ======================
         case 'author':
             return value.length >= 2 && value.length <= 80 && /^[\p{L} .'-]+$/u.test(value);
+        case 'authorImg':
+            return value.length < 45 && typeof value === 'string';
         case 'text':
             return value.length >= 1 && value.length <= 800;
         default:
@@ -59,7 +61,7 @@ const validateFormType = (validFormElements, type) => {
 
         // ====================== POST VALIDATION ======================
         case 'addPost':
-            return JSON.stringify(validFormElements) === JSON.stringify([ 'author', 'text' ]);
+            return JSON.stringify(validFormElements) === JSON.stringify([ 'author', 'authorImg', 'text' ]);
         default:
             console.log(`Check failed! ${type} elements are not valid!`);
         return false;

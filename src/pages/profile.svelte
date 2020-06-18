@@ -99,7 +99,11 @@
 {:then data}
 	<Modal>
 		<div class="contentContainer">
-			<ProfileImage size={15} img={user_profile.images && user_profile.images.length > 0 ? user_profile.images[0] : undefined} />
+			<ProfileImage 
+				size={15} 
+				slideShowImgs={user_profile.images && user_profile.images.length > 0 ? user_profile.images : undefined} 
+				img={user_profile.images && user_profile.images.length > 0 ? user_profile.images[0] : undefined} 
+			/>
 			<div class="userFullName">{user_profile.first_name} {user_profile.last_name}</div>
 			<ProfileIntro {user_profile} />
 			<p class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</p>

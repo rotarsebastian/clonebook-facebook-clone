@@ -1,6 +1,14 @@
 <script>
   export let slide;
+  export let page;
+
+  const url = slide.url.includes('blob') ? slide.url : `https://clonebook.s3.eu-north-1.amazonaws.com/${page}/${slide.url}`;
 </script>
+
+<div class="slide"
+  class:current={slide.selected}
+  style="background: url('{url}') no-repeat center top/cover;">
+</div>
 
 <style>
   .slide {
@@ -17,8 +25,3 @@
     opacity: 1;
   }
 </style>
-
-<div class="slide"
-  class:current={slide.selected}
-  style="background: url('./assets/imgs/{slide.url}.jpeg') no-repeat center top/cover;">
-</div>

@@ -2,6 +2,7 @@
     import ProfileImg from './../MiniComponents/ProfileImage.svelte';
     import Dialog from './../Modals/Dialog.svelte';
     import { getContext } from 'svelte';
+    import { store } from './../../stores/store.js';
 
     export let createPost;
 
@@ -35,7 +36,7 @@
 <!-- ######################################## -->
 <div class="createPost">
     <div class="topContainer">
-        <ProfileImg size={2.5} />
+        <ProfileImg size={2.5} img={$store.user.images[0]}  />
         <input 
             class="inputNewPost" 
             type="text" 

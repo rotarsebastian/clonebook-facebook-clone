@@ -1,12 +1,38 @@
 <script>
     export let size;
     export let img = undefined;
+    export let slideShowImgs = undefined;
+    import { store } from './../../stores/store.js';
+    import { getContext } from 'svelte';
+    import Slides from './../Modals/Slides.svelte';
+
+    const { open } = getContext('simple-modal');
+
+    const showFullscreenImgs = () => {
+        open(
+			Slides,
+			{ images: slideShowImgs ? slideShowImgs : $store.user.images, page: 'profiles' },
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+                styleWindow: {
+                    width: '90%'
+                },
+                styleBg: {
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    top: 0,
+                    left: 0
+                }
+			}
+	    );
+    }
 </script>
 
 <!-- ######################################## -->
 
 {#if img}
-    <img class="profileImg" style="width: {size}rem; height: {size}rem;" src={`https://clonebook.s3.eu-north-1.amazonaws.com/profiles/${img}`} alt="profileImg" />
+    <img on:click={showFullscreenImgs} class="profileImg" style="width: {size}rem; height: {size}rem;" src={`https://clonebook.s3.eu-north-1.amazonaws.com/profiles/${img}`} alt="profileImg" />
     {:else}
     <span class="profileImgDefault" style="width: {size}rem; height: {size}rem;"></span>
 {/if}
@@ -25,5 +51,6 @@
         width: 2rem;
         border-radius: 50%;
         object-fit: cover;
+        cursor: pointer;
     }
 </style>

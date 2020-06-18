@@ -6,6 +6,7 @@
 	import Thumb from './../components/MiniComponents/Thumb.svelte';
 	import { getNotificationsContext } from 'svelte-notifications';
 	import { validateForm } from './../helpers/validation';
+	import Modal from './../components/Modals/Modal.svelte';
 	
     const { addNotification } = getNotificationsContext();
 
@@ -27,8 +28,11 @@
 	let newImages = [];
 
 	const setNewImages = files => {
-		newImages = [ ...files ];
-		buttonDisabled = false;
+		$store.temporaryImages = [ ...files.map(img => img.preview) ];
+		setTimeout(() => {
+			newImages = [ ...files ];
+			buttonDisabled = false;
+		}, 100);
 	}
 
 	const removeOldImage = index => {
@@ -78,53 +82,56 @@
         } 
 	}
 	
-	
 </script>
 
-<div class="contentContainer">
-	<ProfileImage size={15} img={$store.user.images && $store.user.images.length > 0 ? $store.user.images[0] : undefined} />
-	<div class="userFullName">{$store.user.first_name} {$store.user.last_name}</div>
+<Modal>
+	<div class="contentContainer">
+		<ProfileImage size={15} img={$store.user.images && $store.user.images.length > 0 ? $store.user.images[0] : undefined} />
+		<div class="userFullName">{$store.user.first_name} {$store.user.last_name}</div>
 
-	<div class="inputContainer">
-		<label for="first_name">First name</label>
-		<input 
-			class="input" 
-			id="first_name" 
-			name="first_name" 
-			type="text" 
-			placeholder="Your first name" 
-			bind:value={first_name} 
-			on:input={() => buttonDisabled = false} 
-		/>
+		<div class="inputContainer">
+			<label for="first_name">First name</label>
+			<input 
+				class="input" 
+				id="first_name" 
+				name="first_name" 
+				type="text" 
+				placeholder="Your first name" 
+				bind:value={first_name} 
+				on:input={() => buttonDisabled = false} 
+			/>
+		</div>
+
+		<div class="inputContainer">
+			<label for="last_name">Last name</label>
+			<input 
+				class="input last" 
+				id="last_name" 
+				name="last_name" 
+				type="text" 
+				placeholder="Your last name" 
+				bind:value={last_name} 
+				on:input={() => buttonDisabled = false} 
+			/>
+		</div>
+
+		<p class="addRemoveImages">Add / Remove profile images</p>
+		<div class="thumbsContainer">
+			{#each oldImages as image, index}
+				<Thumb removeImage={removeOldImage} oldImage={image} index={index} />
+			{/each}
+			<AddImages files={newImages} setNewFiles={setNewImages} />
+		</div>
+
+		<p class="infoContainer"><span>Click:</span>Select profile picture</p>
+		<p class="infoContainer"><span>Double click:</span>See images in fullscreen mode</p>
+		<p class="infoContainer"><span>Info:</span>You can add maximum 5 new pictures at once</p>
+
+		<button class="editProfileButton" on:click={editProfile} class:disabled={buttonDisabled} disabled={buttonDisabled}>
+			Save changes
+		</button>
 	</div>
-
-	<div class="inputContainer">
-		<label for="last_name">Last name</label>
-		<input 
-			class="input last" 
-			id="last_name" 
-			name="last_name" 
-			type="text" 
-			placeholder="Your last name" 
-			bind:value={last_name} 
-			on:input={() => buttonDisabled = false} 
-		/>
-	</div>
-
-	<p class="addRemoveImages">Add / Remove profile images</p>
-	<div class="thumbsContainer">
-		{#each oldImages as image, index}
-			<Thumb removeImage={removeOldImage} oldImage={image} index={index} />
-		{/each}
-		<AddImages files={newImages} setNewFiles={setNewImages} />
-	</div>
-
-	<p class="infoContainer"><span>Info:</span>Click on the images to change your profile picture. You can add maximum 5 new pictures at once</p>
-
-	<button class="editProfileButton" on:click={editProfile} class:disabled={buttonDisabled} disabled={buttonDisabled}>
-		Save changes
-	</button>
-</div>
+</Modal>
 
 <style>
 	.contentContainer {
@@ -145,12 +152,19 @@
 		color: var(--grey);
 		margin-top: 2rem;
 		font-size: 1.35rem;
-		margin-bottom: 2rem;
+		margin-bottom: 1rem;
 	}
 	.infoContainer {
 		color: var(--grey);
-		margin-top: 1rem;
+		margin-top: .5rem;
 		font-size: .9rem;
+	}
+
+	.infoContainer:first {
+		margin-top: 1.5rem;
+	}
+	.infoContainer:last-of-type {
+		margin-bottom: .5rem;
 	}
 
 	.infoContainer span {

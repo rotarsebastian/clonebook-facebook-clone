@@ -1,22 +1,45 @@
 <script>
     import CloseButton from './CloseButton.svelte';
     import { store } from './../../stores/store';
+    import { getContext } from 'svelte';
+    import Slides from './../Modals/Slides.svelte';
+
+    const { open } = getContext('simple-modal');
     
     export let oldImage = undefined;
     export let preview = undefined;
     export let index;
     export let removeImage;
 
-    const changeProfileImage = () => {
-        $store.selectedProfileImage = preview ? preview : oldImage;
+    const changeProfileImage = () => $store.selectedProfileImage = preview ? preview : oldImage;
+
+    const showFullscreenImgs = () => {
+        open(
+			Slides,
+			{ images: [ ...$store.user.images, ...$store.temporaryImages ], page: 'profiles' },
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+                styleWindow: {
+                    width: '90%'
+                },
+                styleBg: {
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    top: 0,
+                    left: 0
+                }
+			}
+	    );
     }
+
 </script>
 
 <!-- ######################################## -->
 
 <div class="thumb">
     <CloseButton top={0.5} right={0.5} close={() => removeImage(index)} />
-    <div class="thumbInner" on:click={changeProfileImage}>
+    <div class="thumbInner" on:click={changeProfileImage} on:dblclick={showFullscreenImgs}>
         <img 
             src={oldImage ? `https://clonebook.s3.eu-north-1.amazonaws.com/profiles/${oldImage}` : preview} alt={'thumb-img'}
             class:profileImage={$store.selectedProfileImage === preview || $store.selectedProfileImage === oldImage}    

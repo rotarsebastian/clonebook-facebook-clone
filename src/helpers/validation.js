@@ -41,6 +41,8 @@ export const validateInputValue = (type, value) => {
         // ====================== POST VALIDATION ======================
         case 'author':
             return value.length >= 2 && value.length <= 80 && /^[\p{L} .'-]+$/u.test(value);
+        case 'authorImg':
+            return typeof value === 'string';
         case 'text':
             return value.length >= 1 && value.length <= 800;
         default:

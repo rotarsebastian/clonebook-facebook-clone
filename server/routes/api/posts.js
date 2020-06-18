@@ -79,7 +79,7 @@ router.post('/', isAuthenticated, (req, res) => {
             }
 
             //  ====================== HANDLE INITIAL CHECK FOR STRING DATA ======================
-            const initialCheckRes = handleInitialFormCheck(JSON.parse(req.body.data), 'addPost', 2);
+            const initialCheckRes = handleInitialFormCheck(JSON.parse(req.body.data), 'addPost', 3);
             if(initialCheckRes.status !== 1) {
                 if(errorRemoveImgs.length > 0) removeImages(errorRemoveImgs);
                 return res.json(initialCheckRes);
@@ -103,7 +103,7 @@ router.post('/', isAuthenticated, (req, res) => {
             const createdPost = await Post.create(newPost);
             if(!createdPost) return res.json({ status: 0, message: 'Error while inserting post!', code: 404 });
 
-            touchedPost = { ...newPost, date: new Date(), _id: createdPost._id, isNew: true };
+            touchedPost = { ...newPost, date: new Date(), _id: createdPost._id, isNew: true, likes: [], comments: [] };
             globalPosts++;
             
             return res.json({ status: 1, property: newPost });
@@ -222,13 +222,13 @@ router.patch('/:id/comment', isAuthenticated, async(req, res) => {
         if(!id || !user_id) return res.json({ status: 0, message: 'Missing ids!', code: 404 });
 
         // ====================== HANDLE INITIAL CHECK ======================
-        const initialCheckRes = handleInitialFormCheck(req.body, 'addPost', 2);
+        const initialCheckRes = handleInitialFormCheck(req.body, 'addPost', 3);
         if(initialCheckRes.status !== 1) return res.json(initialCheckRes);
 
         // ====================== EXTRACT FORM ELEMENTS ======================
-        const [ { val: author }, { val: text } ] = [ ...req.body ];
+        const [ { val: author }, { val: authorImg }, { val: text } ] = [ ...req.body ];
 
-        const newComment = { _id: new ObjectId(), author, text, authorId: user_id, edited: false, date: new Date(), likes: [] };
+        const newComment = { _id: new ObjectId(), author, authorImg, text, authorId: user_id, edited: false, date: new Date(), likes: [] };
 
         // ====================== COMMENT POST ======================
         const dbRes = await Post.findOneAndUpdate({ _id: id }, { $addToSet: { comments: newComment } }, { upsert: true, useFindAndModify: false });

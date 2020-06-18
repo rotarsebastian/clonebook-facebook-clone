@@ -9,5 +9,6 @@ export let store = writable({
         images: []
     },
     notifications: [],
-    selectedProfileImage: null
+    selectedProfileImage: null,
+    temporaryImages: []
 });

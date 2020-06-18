@@ -7,6 +7,7 @@
 	const _onCancel = () => close();
 
     export let images;
+    export let page;
 
     let current = 0;
 
@@ -82,7 +83,7 @@
 
 <div class="slider">
   {#each slides as slide}
-    <Slide slide={slide} />
+    <Slide slide={slide} page={page} />
   {/each}
 </div>
 

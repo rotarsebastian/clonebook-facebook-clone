@@ -46,6 +46,7 @@
         // ====================== VALIDATION ======================
         const commentData = [ 
             { type: 'author', val: `${$store.user.first_name} ${$store.user.last_name}` }, 
+            { type: 'authorImg', val: $store.user.images[0] }, 
             { type: 'text', val: e.target.value }
         ];
 
@@ -121,7 +122,7 @@
     const showFullscreenImgs = images => {
         open(
 			Slides,
-			{ images },
+			{ images, page: 'posts' },
 			{
 				closeButton: true,
                 closeOnEsc: true,
@@ -148,7 +149,7 @@
 <!-- ######################################## -->
 <div class="postContainer">
     <div class="topContainer">
-        <ProfileImg size={2} />
+        <ProfileImg size={2} img={post.authorImg} />
         <div class="nameContainer">
             <div class="name" on:click={() => $goto('../profile', { id: post.authorId })}>{post.author}</div>
             <div class="time">{parseDate(post.date)}</div>
@@ -212,7 +213,7 @@
     {/if}
 
     <div class="bottomContainer">
-        <ProfileImg size={2} />
+        <ProfileImg size={2} img={$store.user.images[0]} />
         <input 
             class="inputAddComment" 
             type="text" 

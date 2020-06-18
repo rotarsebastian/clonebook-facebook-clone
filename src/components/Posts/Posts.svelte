@@ -33,6 +33,7 @@
         // ====================== VALIDATION ======================
         const newPostData = [ 
             { type: 'author', val: `${$store.user.first_name} ${$store.user.last_name}` }, 
+            { type: 'authorImg', val: $store.user.images[0] },
             { type: 'text', val: text }
         ];
 

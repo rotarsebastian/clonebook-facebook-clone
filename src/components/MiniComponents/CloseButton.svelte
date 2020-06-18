@@ -15,7 +15,7 @@
     display: block;
     box-sizing: border-box;
     position: absolute;
-    z-index: 1000;
+    z-index: 1;
     margin: 0;
     padding: 0;
     width: 1.5rem;
