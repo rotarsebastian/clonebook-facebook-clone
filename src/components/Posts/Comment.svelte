@@ -22,12 +22,11 @@
         });
     }
 
+    export let postId;
     export let comment;
     export let onDelete;
 
     const { open } = getContext('simple-modal');
-
-    const postId = $store.posts.find(post => post.comments.findIndex(comm => comm._id === comment._id) > -1)._id;
 
     let liked = comment.likes.findIndex(like => like === $store.user._id) > -1 ? true : false; 
     let showEditDelete = false, showDropdown = false, editDelete;

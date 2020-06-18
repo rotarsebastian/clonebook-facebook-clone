@@ -1,20 +1,26 @@
 <script>
     import IconUser from '../MiniComponents/IconUser.svelte';
     import { store } from '../../stores/store.js';    
+    import openSocket from 'socket.io-client';
+    import { onMount } from 'svelte';
+
+    onMount(() => {
+        console.log('mounted');
+    })
+
+    console.log('das')
 </script>
 
 <!-- ######################################## -->
 
-{#if $store.chatUserStore !== null}
-	<div class="chatContainer">
-        <div class="topBar">
-            <IconUser user={$store.chatUserStore} />
-            <div class="closeChatContainer" on:click={() => $store.chatUserStore = null}>
-                <span class="closeChatButton"></span>
-            </div>
+<div class="chatContainer">
+    <div class="topBar">
+        <IconUser user={$store.chatUserStore} />
+        <div class="closeChatContainer" on:click={() => $store.chatUserStore = null}>
+            <span class="closeChatButton"></span>
         </div>
     </div>
-{/if}
+</div>
 
 <!-- ######################################## -->
 

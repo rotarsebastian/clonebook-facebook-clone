@@ -88,7 +88,9 @@
 					<div class="chatList"><ChatList /></div>
 				</div>
 			</div>
-			<ChatContainer />
+			{#if $store.chatUserStore}
+				<ChatContainer />
+			{/if}
 		</main>
 	</Modal>
 {:catch error}

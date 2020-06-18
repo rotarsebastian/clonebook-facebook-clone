@@ -223,7 +223,7 @@
 
     {#if seeComments}
         {#each post.comments as comment}
-            <Comment onDelete={deleteComment} comment={comment} />
+            <Comment onDelete={deleteComment} comment={comment} postId={id} />
         {/each}
     {/if}
 

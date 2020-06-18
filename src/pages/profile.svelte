@@ -17,10 +17,11 @@
 		if(eventSource) eventSource.close();
 	});
 
-	let user_profile, user_posts;
+	let user_profile, user_posts, subscribed = false;
+	$: user_posts;
 
-	const getPosts = async() => {
-		const posts = await getUserPosts($params.id, 0, $store.accessToken);
+	const getPosts = async(id) => {
+		const posts = await getUserPosts(id, 0, $store.accessToken);
 
 		// ====================== CHECK IF TOKEN EXPIRED ======================
 		if(posts.hasOwnProperty('msg')) {
@@ -31,7 +32,7 @@
 				$store.user = user;
 				$store.accessToken = accessToken;
 
-				const postsNewToken = await getUserPosts($params.id, 0, accessToken);
+				const postsNewToken = await getUserPosts(id, 0, accessToken);
 				return postsNewToken;
 			} 
 		} else return posts;
@@ -43,7 +44,7 @@
 			try {
 				if(e.data !== '0') { 
 					const updatedPost = JSON.parse(e.data);
-					if(updatedPost.authorId === user_profile._id) {
+					if(updatedPost.authorId === $params.id) {
 						if(updatedPost.hasOwnProperty('isNew')) {
 							delete updatedPost.isNew;
 							if(user_posts.findIndex(post => post._id === updatedPost._id) === -1) user_posts = [ updatedPost, ...user_posts ];
@@ -66,12 +67,15 @@
 		});
 	}
 	    	
-	const getUserData = async() => {
-        const result = await getSpecificUser($params.id, $store.accessToken);
+	const getUserData = async(id) => {
+        const result = await getSpecificUser(id, $store.accessToken);
 		user_profile = result.data;
-		const postsData = await getPosts();
+		const postsData = await getPosts(id);
 		user_posts = postsData;
-		subscribePosts();
+		if(!subscribed) {
+			subscribePosts();
+			subscribed = true;
+		}
 		
 		// ====================== CHECK IF TOKEN EXPIRED ======================
 		if(user_profile.hasOwnProperty('msg')) {
@@ -81,17 +85,20 @@
 				$store.isAuthenticated = true;
 				$store.accessToken = accessToken;
 
-				const result_new_token = await getSpecificUser($params.id, accessToken);
+				const result_new_token = await getSpecificUser(id, accessToken);
 				user_profile = result_new_token.data;
 				
-				const postsData = await getPosts();
+				const postsData = await getPosts(id);
 				user_posts = postsData;
-				subscribePosts();
+				if(!subscribed) {
+					subscribePosts();
+					subscribed = true;
+				}
 			} 
 		}
 	}
 
-	const userData = getUserData();
+	$: userData = getUserData($params.id);
 	
 </script>
 
