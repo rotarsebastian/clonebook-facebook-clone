@@ -2,13 +2,12 @@
     export let user;
     import ProfileImg from './ProfileImage.svelte';
 
-    console.log(user);
 </script>
 
 <!-- ######################################## -->
 
-<ProfileImg size={2}  />
-<div class="profileName">{user.first_name} {user.last_name}</div>
+<ProfileImg size={2} img={user.image} slideShowImgs={[ user.image ]} />
+<div class="profileName">{user.name}</div>
 
 <!-- ######################################## -->
 

@@ -95,6 +95,7 @@ router.get('/sendFriendRequest', isAuthenticated, async(req, res) => {
     }
 });
 
+// ====================== ANSWER FRIEND REQUEST ======================
 router.post('/answerFriendReq', isAuthenticated, async(req, res) => {
     try {
         // ====================== GET THE USER FROM ID ======================
@@ -104,11 +105,11 @@ router.post('/answerFriendReq', isAuthenticated, async(req, res) => {
         // ====================== GET BODY ======================
         const { answer, ...rest } = req.body;
 
-        const newFriend = { _id: new ObjectId(), friend_id: rest.from, first_name: rest.first_name, last_name: rest.last_name, images: rest.images };
+        const newFriend = { _id: new ObjectId(), friend_id: rest.from, name: `${rest.first_name} ${rest.last_name}`, image: rest.images[0] };
         const user = await User.findById(_id).select('first_name last_name images');
         
         const { _id: from, ...rest2 } = user._doc;
-        const newFriendBack = { _id: new ObjectId(), friend_id: _id, first_name: rest2.first_name, last_name: rest2.last_name, images: rest2.images };
+        const newFriendBack = { _id: new ObjectId(), friend_id: _id, name: `${rest2.first_name} ${rest2.last_name}`, image: rest2.images[0] };
 
         const acceptFriendReq = { _id: new ObjectId(), ...rest2, from: _id, to: rest.from, type: 'accept' };
 
@@ -164,6 +165,7 @@ router.post('/answerFriendReq', isAuthenticated, async(req, res) => {
     }
 });
 
+// ====================== DELETE NOTIFICATION ======================
 router.post('/deleteNotification/:id', isAuthenticated, async(req, res) => {
     try {
         // ====================== GET THE USER ID ======================

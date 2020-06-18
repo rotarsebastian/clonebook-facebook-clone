@@ -44,9 +44,8 @@
                                 $store.notifications = [ updatedNotif, ...$store.notifications ];
                                 if(updatedNotif.type === 'accept') {
                                     const newFriend = { 
-                                        first_name: updatedNotif.first_name,  
-                                        last_name: updatedNotif.last_name,  
-                                        images: updatedNotif.images,  
+                                        name: `${updatedNotif.first_name} ${updatedNotif.last_name}`,  
+                                        image: updatedNotif.images[0],  
                                         friend_id: updatedNotif.from
                                     };
                                     $store.user.friends = [ ...$store.user.friends, newFriend ]
@@ -100,6 +99,10 @@
         }
     }
 
+    const hideDrop = drop => {
+       if(drop === 'arrowDrop') dropdowns.showArrowDrop = false;
+    }
+
     window.addEventListener('click', () => {
         if(dropdowns.showArrowDrop === true) dropdowns.showArrowDrop = false;
         else if(dropdowns.showMessagesDrop === true) dropdowns.showMessagesDrop = false;
@@ -111,9 +114,9 @@
 <!-- ######################################## -->
 
 <div class="rightContainer">
-    <div class="profileContainer">
-        <ProfileImg size={1.75} />
-        <div class="profileName">Sebastian</div>
+    <div class="profileContainer" on:click={() => $goto(`/profile?id=${$store.user._id}`)}>
+        <ProfileImg size={1.75} img={$store.user.images[0]} slideShowImgs={$store.user.images[0]} />
+        <div class="profileName">{$store.user.first_name}</div>
     </div>
     <div class="iconsContainer">
         {#each iconsContainer as elem}
@@ -136,7 +139,7 @@
         {/each}
 
         {#if dropdowns.showArrowDrop}
-            <ArrowDrop />
+            <ArrowDrop hideDrop={hideDrop} />
             {:else if dropdowns.showMessagesDrop}
             <MessagesDrop />
             {:else if dropdowns.showNotifDrop}

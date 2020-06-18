@@ -13,7 +13,6 @@ const rateLimit = require('express-rate-limit');
 // app.use('/users/recover', rateLimit({ windowMs: 5 * 1000, max: 1 }));
 // app.use('/users/edit', rateLimit({ windowMs: 5 * 1000, max: 1 }));
 // app.use('/users/logout', rateLimit({ windowMs: 5 * 1000, max: 1 }));
-// app.use('/users/checkauth', rateLimit({ windowMs: 5 * 1000, max: 1 }));
 // app.use('/users/resetpass', rateLimit({ windowMs: 5 * 1000, max: 1 }));
 // app.use('/users/reset', rateLimit({ windowMs: 5 * 1000, max: 1 }));
 // app.use('/users/activate', rateLimit({ windowMs: 20 * 1000, max: 1 }));

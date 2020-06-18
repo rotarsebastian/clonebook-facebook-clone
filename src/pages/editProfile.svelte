@@ -17,7 +17,7 @@
             type,
             removeAfter: 3000,
         });
-    }
+	}
     
 	let first_name = $store.user.first_name, last_name = $store.user.last_name;
 
@@ -44,11 +44,11 @@
 	
 	const editProfile = async() => {
 		// ====================== VALIDATION ======================
-        const editProfileData = [ 
-            { type: 'first_name', val: first_name }, 
+        const editProfileData = [
+			{ type: 'first_name', val: first_name },
 			{ type: 'last_name', val: last_name },
 			{ type: 'images', val: JSON.stringify(oldImages) }
-        ];
+		];
 
         const isFormValid = validateForm(editProfileData);
 		if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
@@ -66,9 +66,8 @@
 		if($store.selectedProfileImage !== null) {
 			if($store.selectedProfileImage.includes('blob')) {
 				newProfileImage = newImages.findIndex(img => img.preview === $store.selectedProfileImage);
-			} else {
-				newProfileImage = oldImages.find(img => img === $store.selectedProfileImage);
-			}
+			} 
+			else newProfileImage = oldImages.find(img => img === $store.selectedProfileImage);
 		}
 		const res = newProfileImage !== undefined ? await updateProfile(requestData, $store.accessToken, newProfileImage) : await updateProfile(requestData, $store.accessToken);
 		

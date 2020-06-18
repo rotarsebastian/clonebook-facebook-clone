@@ -59,10 +59,6 @@
 
 <!-- ######################################## -->
 
-{#if posts.length === 0}
-    <div>waiting...</div>
-{/if}
-
 {#if posts.length > 0}
     <div class="postsContainer">
         {#if !propsPosts}

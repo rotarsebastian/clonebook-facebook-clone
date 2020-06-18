@@ -2,6 +2,7 @@
 require('dotenv').config();
 const router = require('express').Router();
 const User = require(__dirname + '/../../models/User');
+const Post = require(__dirname + '/../../models/Post');
 const Key = require(__dirname + '/../../models/Key');
 const Refresh_Token = require(__dirname + '/../../models/RefreshToken');
 const { isAuthenticated, generateAccessToken } = require(__dirname + '/../../helpers/auth');
@@ -138,14 +139,19 @@ router.patch('/', isAuthenticated, (req, res) => {
             const data = JSON.parse(req.body.data);
 
             data.map(e => e.type !== 'images' ? updatedUser[e.type] = e.val : false);
+
+            // ====================== CHECK IF UPDATED IMAGES ======================
             updatedUser.images = JSON.parse(data[data.length - 1].val);
 
-            // ====================== DELETE REMOVED IMAGES FROM S3 - IF ANY ======================
-            const removedPhotos = loggedUser._doc.images.filter(img => { 
-                if(updatedUser.images.indexOf(img) < 0) return img;
-            });
-            removeImages(removedPhotos, 'profiles');
-            
+            if(loggedUser._doc.images.length !== updatedUser.images.length) {
+
+                // ====================== DELETE REMOVED IMAGES FROM S3 - IF ANY ======================
+                const removedPhotos = loggedUser._doc.images.filter(img => { 
+                    if(updatedUser.images.indexOf(img) < 0) return img;
+                });
+                removeImages(removedPhotos, 'profiles');
+            }
+
             // ====================== ADD NEW IMAGES ======================
             let imgs = [];
             req.files.map(img => imgs.push(img.location.slice(-41)));
@@ -172,11 +178,29 @@ router.patch('/', isAuthenticated, (req, res) => {
             updatedUser.images = [ ...updatedUser.images, ...imgs ]; // ADD NEW IMAGES
 
             // ====================== UPDATE THE USER ======================
-            const updatedUserDB = await User.findOneAndUpdate({ _id: req.user._id }, updatedUser, { upsert: true, useFindAndModify: false });
+            const updatedUserDB = await User.findOneAndUpdate({ _id: req.user._id }, updatedUser, { useFindAndModify: false });
             if(!updatedUserDB) {
                 if(errorRemoveImgs.length > 0) removeImages(errorRemoveImgs);
                 return res.json({ status: 0, message: 'Error while updating user - DB!', code: 404 });
             }
+
+            // ====================== UPDATE POSTS AND FRIENDS ======================
+            let updatedUserObj = { author: `${updatedUser.first_name} ${updatedUser.last_name}` };
+            if(updatedUser.images.length !== 0) updatedUserObj.authorImg = updatedUser.images[0];
+            else if(updatedUser.images.length === 0) updatedUserObj.authorImg = null;
+
+            await Post.updateMany({ authorId: req.user._id }, updatedUserObj);
+            await Post.updateMany(
+                { comments: { $elemMatch: { authorId: req.user._id }} }, 
+                { $set: { 'comments.$.author': updatedUserObj.author, 'comments.$.authorImg': updatedUserObj.authorImg } }, 
+                { multi: true, useFindAndModify: false }
+            );
+            
+            await User.updateMany(
+                { friends: { $elemMatch: { friend_id: req.user._id }} }, 
+                { $set: { 'friends.$.name': updatedUserObj.author, 'friends.$.image': updatedUserObj.authorImg } }, 
+                { multi: true, useFindAndModify: false }
+            );
             
             return res.json({ status: 1, message: 'User edited successfully!', updatedUser });
         });
@@ -501,6 +525,29 @@ router.patch('/friend/delete/:id', isAuthenticated, async(req, res) => {
 
     } catch (err) {
         return res.json({ status: 0, message: 'Error deleting friend!'});
+    }
+});
+
+// ====================== GET LIKES USERS ======================
+router.post('/likes', isAuthenticated, async(req, res) => {
+    try {
+        // ====================== GET THE USER IDS ======================
+        const users_ids = [ ...req.body ];
+        if(!users_ids) return res.json({ status: 0, message: 'Missing users ids!', code: 404 });
+
+        // ====================== TRANSFORM IDS INTO MONGO IDS ======================
+        const mongoIdsArray = users_ids.map(id => ObjectId(id));
+
+        // ====================== GET ALL THE USERS ======================
+        const users = await User.find({
+            _id: { $in: mongoIdsArray }
+        }).select('first_name last_name images');
+        
+        // ====================== EVERYTHING OK ======================s
+        return res.json({ status: 1, message: 'Users retrieved successfully!', data: users });
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error getting users!'});
     }
 });
 

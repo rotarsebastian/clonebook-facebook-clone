@@ -45,7 +45,6 @@
 					if(updatedPost.hasOwnProperty('isNew')) {
 						delete updatedPost.isNew;
 						if($store.posts.findIndex(post => post._id === updatedPost._id) === -1) $store.posts = [ updatedPost, ...$store.posts ];
-						console.log($store.posts);
 					} 
 
 					else if(updatedPost.hasOwnProperty('deletedPostId')) {

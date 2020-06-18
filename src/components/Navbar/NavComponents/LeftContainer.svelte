@@ -65,7 +65,7 @@
                     <div class="results">
                         {#each ajUsers as ajUser}
                             <div class="searchResultUser" on:click={() => handleRedirect(ajUser._id)}>
-                                <IconUser user={ajUser} />
+                                <IconUser user={{ name: `${ajUser.first_name} ${ajUser.last_name}`, image: ajUser.images[0] }} />
                                 <div class="deleteSearchContainer">
                                     <span class="deleteSearchButton" on:click={() => ajUsers = ajUsers.filter(user => user !== ajUser)}></span>
                                 </div>

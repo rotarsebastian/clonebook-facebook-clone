@@ -40,7 +40,7 @@
         <input 
             class="inputNewPost" 
             type="text" 
-            placeholder="What's on your mind, {'Sebastian'}?"
+            placeholder="What's on your mind, {$store.user.first_name}?"
             on:click={showDialog}
         />
     </div>

@@ -3,7 +3,9 @@
     import EditDelete from './../MiniComponents/EditDelete.svelte';
     import ProfileImg from './../MiniComponents/ProfileImage.svelte';
     import { like } from '../../helpers/icons.js';
+    import { getUsersByIDs } from '../../helpers/auth.js';
     import Dialog from './../Modals/Dialog.svelte';
+    import UsersList from './../Modals/UsersList.svelte';
     import { getContext } from 'svelte';
     import Slides from './../Modals/Slides.svelte';
     import { store } from './../../stores/store.js';
@@ -139,6 +141,19 @@
 	    );
     }
 
+    const getUsersWhichLiked = async() => {
+        const result = await getUsersByIDs(post.likes, $store.accessToken);
+        open(
+			UsersList,
+			{ users: result.data },
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+			}
+	    );
+    }
+
     window.addEventListener('click', e => {
         if(e.target === editDelete) showDropdown = !showDropdown;
         else if(showDropdown === true) showDropdown = false;
@@ -149,7 +164,7 @@
 <!-- ######################################## -->
 <div class="postContainer">
     <div class="topContainer">
-        <ProfileImg size={2} img={post.authorImg} />
+        <ProfileImg size={2} img={post.authorImg} slideShowImgs={[ post.authorImg ]} />
         <div class="nameContainer">
             <div class="name" on:click={() => $goto('../profile', { id: post.authorId })}>{post.author}</div>
             <div class="time">{parseDate(post.date)}</div>
@@ -188,7 +203,7 @@
     {#if post.likes && post.likes.length > 0}
         <div class="likes">
             <img height="18" src={like} width="18" alt="like-img" />
-            <span class="likesNumber">{post.likes.length}</span>
+            <span class="likesNumber" on:click={getUsersWhichLiked}>{post.likes.length}</span>
         </div>
     {/if}
 
@@ -343,6 +358,7 @@
         font-size: 15px;
         cursor: pointer;
         margin-left: .2rem;
+        user-select: none;
     }
 
     .buttonsContainer {

@@ -4,6 +4,8 @@
     import { goto } from '@sveltech/routify';
     import { logout } from './../../../../helpers/auth.js';
 
+    export let hideDrop = undefined;
+
     const handleLogout = async() => {
         const response = await logout(localStorage.getItem('refreshToken'));
         if(response.status === 1) {
@@ -21,6 +23,11 @@
         }
     }
 
+    const redirectToProfile = () => {
+        hideDrop('arrowDrop');
+        $goto(`/profile?id=${$store.user._id}`);
+    }
+
 </script>
 
 <!-- ######################################## -->
@@ -28,8 +35,8 @@
 <div id="dropdownCaret" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
     <div class="itemsContainer">
         <div class="items">
-            <div class="item">
-                <ProfileImg size={3.25} />
+            <div class="item" on:click={redirectToProfile}>
+                <ProfileImg size={3.25} img={$store.user.images[0]} slideShowImgs={$store.user.images[0]} />
                 <div class="profile">
                     <div class="name">{$store.user.first_name}</div>
                     <div class="info">See your profile</div>

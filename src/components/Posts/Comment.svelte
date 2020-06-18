@@ -95,7 +95,7 @@
 
 <!-- ######################################## -->
     <div class="commentContainer" on:mouseleave={() => showEditDelete = false} on:mouseenter={() => showEditDelete = true}>
-        <div class="profile"><ProfileImg size={2} img={comment.authorImg} /></div>
+        <div class="profile"><ProfileImg size={2} img={comment.authorImg} slideShowImgs={[ comment.authorImg ]}  /></div>
         <div>
             <div class="commLike">
                 <div class="comment">

@@ -22,24 +22,6 @@ export const login = async(loginData) => {
     }
 };
 
-export const checkAuth = async() => {
-    try {
-        const options = {
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        };
-        const response = await fetch(usersEndpoint + '/checkauth', options);
-        const data = await response.json();
-        return data;
-    }
-    catch(err) {
-        return { status: 0, message: 'Can not connect to the server', code: 999 };
-    }
-};
-
 export const logout = async(token) => {
     try {
       const options = {
@@ -245,5 +227,25 @@ export const updateProfile = async(editData, token, newProfileImage) => {
   }
   catch(err) {
     return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};
+
+export const getUsersByIDs = async(users_ids, token) => {
+  try {
+      const options = {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(users_ids)
+      };
+      const response = await fetch(usersEndpoint + '/likes', options);
+      const data = await response.json();
+      return data;
+  }
+  catch(err) {
+      return { status: 0, message: 'Can not connect to the server', code: 999 };
   }
 };

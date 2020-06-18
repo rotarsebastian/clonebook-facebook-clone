@@ -43,20 +43,21 @@
 			try {
 				if(e.data !== '0') { 
 					const updatedPost = JSON.parse(e.data);
-
-					if(updatedPost.hasOwnProperty('isNew')) {
-						delete updatedPost.isNew;
-						if(user_posts.findIndex(post => post._id === updatedPost._id) === -1) user_posts = [ updatedPost, ...user_posts ];
-					} 
-
-					else if(updatedPost.hasOwnProperty('deletedPostId')) {
-						const filteredPosts = user_posts.filter(post => post._id !== updatedPost.deletedPostId);
-        				user_posts = filteredPosts;
-					}
-
-					else {
-						const updatedPostIndex = user_posts.findIndex(post => post._id === updatedPost._id);
-						user_posts[updatedPostIndex] = updatedPost; 
+					if(updatedPost.authorId === user_profile._id) {
+						if(updatedPost.hasOwnProperty('isNew')) {
+							delete updatedPost.isNew;
+							if(user_posts.findIndex(post => post._id === updatedPost._id) === -1) user_posts = [ updatedPost, ...user_posts ];
+						} 
+	
+						else if(updatedPost.hasOwnProperty('deletedPostId')) {
+							const filteredPosts = user_posts.filter(post => post._id !== updatedPost.deletedPostId);
+							user_posts = filteredPosts;
+						}
+	
+						else {
+							const updatedPostIndex = user_posts.findIndex(post => post._id === updatedPost._id);
+							user_posts[updatedPostIndex] = updatedPost; 
+						}
 					}
 				}
 			} catch (err) {
@@ -106,7 +107,11 @@
 			/>
 			<div class="userFullName">{user_profile.first_name} {user_profile.last_name}</div>
 			<ProfileIntro {user_profile} />
-			<p class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</p>
+			{#if user_posts.length > 0}
+				<p class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</p>
+				{:else}
+				<p class="postsTitle">No posts yet</p>
+			{/if}
 			<Posts propsPosts={user_posts} />
 		</div>
 	</Modal>
