@@ -4,7 +4,7 @@
     import { store } from '../../stores/store.js';    
     import { getConversation } from '../../helpers/conversations.js';    
 
-    let messagesBox, messageInputValue = '';
+    let messagesBox, messageInputValue = '', loaded = 0;
 
     let conversation = undefined, inputRef;
     $: conversation = $store.assignNewMessage 
@@ -16,17 +16,32 @@
     const getMessages = async() => {
         const result = await getConversation($store.chatUserStore.friend_id, 0, $store.accessToken);
         conversation = result.data;
+        loaded += result.data.messages.length;
         setTimeout(() => { 
             if(messagesBox) {
                 messagesBox.scrollTop = messagesBox.scrollHeight;
                 inputRef.focus();
+                messagesBox.addEventListener('scroll', () => {
+                    if(messagesBox.scrollTop === 0) showMoreMessages();
+                });
             }
         }, 100);
     }
 
+    const showMoreMessages = async() => {
+        const result = await getConversation($store.chatUserStore.friend_id, loaded + 20, $store.accessToken);
+        if(result.data.messages[0].date !== conversation.messages[0].date) {
+            conversation.messages = [ ...result.data.messages, ...conversation.messages ];
+            conversation.messages = conversation.messages.filter((v,i,a)=>a.findIndex(t=>(t.date === v.date))===i);
+            loaded += result.data.messages.length;
+        }
+    }   
+
     const updateConversation = () => {
-        $store.assignNewMessage = null;
-        setTimeout(() => messagesBox ? messagesBox.scrollTop = messagesBox.scrollHeight : false, 100);
+        setTimeout(() => { 
+            if(messagesBox && $store.assignNewMessage !== null) messagesBox.scrollTop = messagesBox.scrollHeight;
+            $store.assignNewMessage = null;
+        }, 100);
     }
 
     const handleSendMessage = async() => {

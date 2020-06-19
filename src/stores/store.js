@@ -11,5 +11,6 @@ export let store = writable({
     notifications: [],
     messages: [],
     selectedProfileImage: null,
-    temporaryImages: []
+    temporaryImages: [],
+    assignNewMessage: null
 });
