@@ -10,6 +10,8 @@
     import { getNotificationsContext } from 'svelte-notifications';
     import { validateForm } from './../../helpers/validation';
     import { parseDate } from './../../helpers/dateParser';
+    import { getUsersByIDs } from '../../helpers/auth.js';
+    import UsersList from './../Modals/UsersList.svelte';
 
     const { addNotification } = getNotificationsContext();
 
@@ -37,11 +39,6 @@
         const result = liked ? await likeComment(postId, comment._id, 1, $store.accessToken) : await likeComment(postId, comment._id, 0, $store.accessToken);
         console.log(result);
     }
-
-    window.addEventListener('click', e => {
-        if(e.target === editDelete) showDropdown = !showDropdown;
-        else if(showDropdown === true) showDropdown = false;
-    });
 	
 	const onOkay = async(text) => {
         if(text) {
@@ -89,6 +86,24 @@
 			}
 	  );
     };
+
+    const getUsersWhichLiked = async() => {
+        const result = await getUsersByIDs(comment.likes, $store.accessToken);
+        open(
+			UsersList,
+			{ users: result.data },
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+			}
+	    );
+    }
+
+    window.addEventListener('click', e => {
+        if(e.target === editDelete) showDropdown = !showDropdown;
+        else if(showDropdown === true) showDropdown = false;
+    });
         
 </script>
 
@@ -104,7 +119,7 @@
                 
                 {#if likes > 0}
                     <span class="likeIconbox">
-                        <span class="likesList">
+                        <span class="likesList" on:click={getUsersWhichLiked}>
                             <img height="18" src={like} width="17" alt="like-img" />
                             <span>{likes}</span>
                         </span>
@@ -251,6 +266,7 @@
         left: -.6rem;
         box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 3px 0px;
         padding: .15rem;
+        cursor: pointer;
     }
 
     .likesList span {

@@ -154,6 +154,13 @@
 	    );
     }
 
+    const handleClickComment = () => {
+        seeComments = true;
+        setTimeout(() => {
+            commInput.focus();
+        }, 100);
+    }
+
     window.addEventListener('click', e => {
         if(e.target === editDelete) showDropdown = !showDropdown;
         else if(showDropdown === true) showDropdown = false;
@@ -201,9 +208,9 @@
     {/if}
 
     {#if post.likes && post.likes.length > 0}
-        <div class="likes">
+        <div class="likes" on:click={getUsersWhichLiked}>
             <img height="18" src={like} width="18" alt="like-img" />
-            <span class="likesNumber" on:click={getUsersWhichLiked}>{post.likes.length}</span>
+            <span class="likesNumber">{post.likes.length}</span>
         </div>
     {/if}
 
@@ -212,7 +219,7 @@
             <img draggable="false" height="18" width="18" alt="likeIcon" src="https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/HayyIjBF1VN.png" />
             Like
         </div>
-        <div class="button comm" on:click={() => commInput.focus()}>
+        <div class="button comm" on:click={handleClickComment}>
             Comment
         </div>
     </div>
@@ -351,6 +358,8 @@
         padding-bottom: 1rem;
         display: flex;
         align-items: center;
+        cursor: pointer;
+        width: fit-content;
     }
 
     .likesNumber {
