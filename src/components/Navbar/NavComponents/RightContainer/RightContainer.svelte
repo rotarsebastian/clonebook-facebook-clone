@@ -10,34 +10,49 @@
     import io from 'socket.io-client';
     import { onMount, onDestroy } from 'svelte';
 
-    onMount(() => {
-        initSocket();
-    });
+    onMount(() => initSocket());
 
 	onDestroy(() => {
         if(eventSource) eventSource.close();
-        if($store.socket) socket.disconnect();
+        if($store.socket) $store.socket.disconnect();
     });
     
+    // ====================== CONSTANT VARIABLES ======================
     const socketUrl = 'http://localhost:9999';
+    const iconsContainer = ['create minimize', 'messages', 'notifications', 'dropdown minimize'];
+    const dropdowns = { showArrowDrop: false, showMessagesDrop: false, showNotifDrop: false, showCreateDrop: false };
+
+    // ====================== DYNAMIC VARIABLES ======================
     let eventSource;
 
-    const iconsContainer = ['create minimize', 'messages', 'notifications', 'dropdown minimize'];
-
-    let dropdowns = { showArrowDrop: false, showMessagesDrop: false, showNotifDrop: false, showCreateDrop: false };
-
+    // ====================== INIT MESSAGES SOCKET ======================
     const initSocket = () => {
+
+        // ====================== CONNECT ======================
         const socketInit = io(socketUrl);
-        $store.socket = socketInit;
 
-        $store.socket.emit('checkToken', { token: $store.accessToken } );
+        // ====================== SEND TOKEN FOR AUTH ======================
+        socketInit.emit('checkToken', { token: $store.accessToken } );
 
-        $store.socket.on('authorization', res => {
-            if(res.status !== 1) $store.socket.disconnect();
-            else console.log(res);
+        // ====================== GET AUTHORIZATION RESPONSE ======================
+        socketInit.on('authorization', res => {
+            if(res.status !== 1) socketInit.disconnect();
+            else $store.socket = socketInit;
         });
+
+        // ====================== ON NEW MESSEGE RECEIVED ======================
+        socketInit.on('gotMessage', message => {
+            const findFromIndex = $store.messages.findIndex(msg => msg.from === message.from);
+            if(findFromIndex === -1) $store.messages = [ message, ...$store.messages ];
+            else $store.messages[findFromIndex].text = message.text;
+            
+            if($store.chatUserStore !== null && $store.chatUserStore.friend_id === message.from) {
+                $store.assignNewMessage = message;
+            }
+        })
     }
 
+    // ====================== GET INITIAL NOTIFICATIONS ======================
 	const getUserNotif = () => {
         setTimeout(async() => {
             const result = await getUserNotifications($store.accessToken, 0);
@@ -47,6 +62,7 @@
         }, 200);
     }
     
+    // ====================== SUBSCRIBE TO NOTIFICATIONS ======================
     const subscribeNotif = async() => {
         eventSource = new EventSource('http://localhost:9999/api/notifications/subscribe');
         
@@ -87,8 +103,7 @@
 		});
 	}
 
-    getUserNotif();
-
+    // ====================== OPEN DROPDOWN MENU ======================
     const handleOpenMenu = (e, menu) => {
         e.stopPropagation();
 
@@ -110,6 +125,7 @@
         }
     }
 
+    // ====================== CLOSE ALL OTHER DROPDOWNS ON OPEN DROP DOWN ======================
     const closeOtherDropdowns = exception => {
         for (let dropdown in dropdowns) {
             if (Object.prototype.hasOwnProperty.call(dropdowns, dropdown)) {
@@ -118,16 +134,21 @@
         }
     }
 
+    // ====================== HIDE DROP DOWN ======================
     const hideDrop = drop => {
        if(drop === 'arrowDrop') dropdowns.showArrowDrop = false;
+       else if(drop === 'messagesDrop') dropdowns.showMessagesDrop = false;
     }
 
+    // ====================== HANDLE ON CLICK OUTSIDE DROPDOWN ======================
     window.addEventListener('click', () => {
         if(dropdowns.showArrowDrop === true) dropdowns.showArrowDrop = false;
         else if(dropdowns.showMessagesDrop === true) dropdowns.showMessagesDrop = false;
         else if(dropdowns.showNotifDrop === true) dropdowns.showNotifDrop = false;
         else if(dropdowns.showCreateDrop === true) dropdowns.showCreateDrop = false;
     });
+
+    getUserNotif();
 </script>
 
 <!-- ######################################## -->
@@ -160,7 +181,7 @@
         {#if dropdowns.showArrowDrop}
             <ArrowDrop hideDrop={hideDrop} />
             {:else if dropdowns.showMessagesDrop}
-            <MessagesDrop />
+            <MessagesDrop hideDrop={hideDrop} />
             {:else if dropdowns.showNotifDrop}
             <NotificationsDrop />
         {/if}

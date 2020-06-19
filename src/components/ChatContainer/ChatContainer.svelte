@@ -2,86 +2,111 @@
     import IconUser from '../MiniComponents/IconUser.svelte';
     import ProfileImg from './../MiniComponents/ProfileImage.svelte';
     import { store } from '../../stores/store.js';    
+    import { getConversation } from '../../helpers/conversations.js';    
 
     let messagesBox, messageInputValue = '';
 
-    const messages = [
-        { from: 'Sebi', text: 'Hey!' },
-        { from: 'Sebi', text: 'Am baut vin!' },
-        { from: 'Sebi', text: 'Da' },
-        { from: 'Ana', text: 'Hello!' },
-        { from: 'Sebi', text: 'How are you?!' },
-        { from: 'Ana', text: 'Good! You?Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-        { from: 'Ana', text: 'Good! You?Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-        { from: 'Ana', text: 'Good! You?' },
-        { from: 'Ana', text: 'Good! You?' },
-        { from: 'Sebi', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-        { from: 'Sebi', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-        { from: 'Sebi', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-        { from: 'Ana', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-    ];
+    let conversation = undefined, inputRef;
+    $: conversation = $store.assignNewMessage 
+        ? 
+        { ...conversation, messages: [ ...conversation.messages, { ...$store.assignNewMessage } ] } 
+        : conversation, 
+        updateConversation()
 
     const getMessages = async() => {
-        // console.log($store.chatUserStore);
+        const result = await getConversation($store.chatUserStore.friend_id, 0, $store.accessToken);
+        conversation = result.data;
+        setTimeout(() => { 
+            if(messagesBox) {
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+                inputRef.focus();
+            }
+        }, 100);
+    }
+
+    const updateConversation = () => {
+        $store.assignNewMessage = null;
+        setTimeout(() => messagesBox ? messagesBox.scrollTop = messagesBox.scrollHeight : false, 100);
     }
 
     const handleSendMessage = async() => {
         if(messageInputValue.length > 0) {
-            console.log(messageInputValue);
+            const newMessage = { 
+                from: $store.user._id, 
+                to: $store.chatUserStore.friend_id, 
+                text: messageInputValue.trim(),
+                from_user_first_name: $store.user.first_name,
+                from_user_image: $store.user.images[0] 
+            };
+            $store.socket.emit('sendMessage', newMessage );
+
+            conversation.messages = [ ...conversation.messages, { from: $store.user._id, text: messageInputValue.trim(), date: new Date() } ];
             messageInputValue = '';
+            setTimeout(() => messagesBox ? messagesBox.scrollTop = messagesBox.scrollHeight : false, 100);
         }
     }
 
-    $: messagesData = getMessages($store.chatUserStore);
+    const messagesData = getMessages($store.chatUserStore);
 </script>
 
 <!-- ######################################## -->
 {#await messagesData}
     <div>...waiting</div>
 {:then data}
-    <div class="chatContainer">
-        <div class="topBar">
-            <IconUser user={$store.chatUserStore} click={true} />
-            <div class="closeChatContainer" on:click={() => $store.chatUserStore = null}>
-                <span class="closeChatButton"></span>
+    {#if $store.chatUserStore}
+        <div class="chatContainer">
+            <div class="topBar">
+                <IconUser user={$store.chatUserStore} click={true} />
+                <div class="closeChatContainer" on:click={() => { $store.chatUserStore = null; $store.assignNewMessage = null; }}>
+                    <span class="closeChatButton"></span>
+                </div>
             </div>
-        </div>
 
-        <div class="chatMessagesContainer">
-            <div class="chatMessages" bind:this={messagesBox}> 
-                {#each messages as message, index}
-                    <div 
-                        class={`message ${message.from === $store.user.first_name ? 'right' : 'left'}`} 
-                        class:closeup={messages[index + 1] && messages[index + 1].from === message.from}
-                        class:roundTop={(messages[index - 1] && messages[index - 1].from !== message.from)|| messages.indexOf(message) === 0}
-                        class:round={messages[index - 1] && messages[index - 1].from === message.from}
-                        class:roundBottom={(messages[index + 1] && messages[index + 1].from !== message.from) || messages.indexOf(message) === messages.length - 1}
-                    >
-                        <div>
-                            {#if message.from !== $store.user.first_name && (messages[index + 1] && messages[index + 1].from !== message.from || messages.indexOf(message) === messages.length - 1)}
-                                <span class="profileImg">
-                                    <ProfileImg 
-                                        size={1.85} 
-                                        img={$store.chatUserStore.image} 
-                                        slideShowImgs={[ $store.chatUserStore.image ]} 
-                                    />
-                                </span>
-                            {/if}
-                            <!-- <p class={"meta"}><span>{message.time}</span></p> -->
-                            <span class={"text"}>{message.text}</span>
-                        </div>
-                    </div>
-                {/each}
+            <div class="chatMessagesContainer" bind:this={messagesBox}>
+                <div class="chatMessages"> 
+                    {#if conversation}
+                        {#each conversation.messages as message, index}
+                            <div 
+                                class={`message ${message.from === $store.user._id ? 'right' : 'left'}`} 
+                                class:closeup={conversation.messages[index + 1] && conversation.messages[index + 1].from === message.from}
+                                class:roundTop={(conversation.messages[index - 1] && conversation.messages[index - 1].from !== message.from)|| conversation.messages.indexOf(message) === 0}
+                                class:round={conversation.messages[index - 1] && conversation.messages[index - 1].from === message.from}
+                                class:roundBottom={(conversation.messages[index + 1] && conversation.messages[index + 1].from !== message.from) || conversation.messages.indexOf(message) === conversation.messages.length - 1}
+                            >
+                                <div>
+                                    {#if message.from !== $store.user._id && (conversation.messages[index + 1] && conversation.messages[index + 1].from !== message.from || conversation.messages.indexOf(message) === conversation.messages.length - 1)}
+                                        <span class="profileImg">
+                                            <ProfileImg 
+                                                size={1.85} 
+                                                img={$store.chatUserStore.image} 
+                                                slideShowImgs={[ $store.chatUserStore.image ]} 
+                                            />
+                                        </span>
+                                    {/if}
+                                    <!-- <p class={"meta"}><span>{message.time}</span></p> -->
+                                    <span class={"text"}>{message.text}</span>
+                                </div>
+                            </div>
+                        {/each}
+                    {/if}
+                </div>
             </div>
+            <div class="chatIsTyping">{$store.chatUserStore.name.split(' ')[0]} is typing...</div>
+
+            <div class="formContainer">
+                <form on:submit|preventDefault={handleSendMessage}>
+                    <input 
+                        type="text" 
+                        placeholder="Enter message" 
+                        bind:value={messageInputValue} 
+                        bind:this={inputRef} 
+                    />
+                </form>
+                <span on:click={handleSendMessage}></span>
+            </div>
+
         </div>
-        <div class="chatIsTyping">{$store.chatUserStore.name.split(' ')[0]} is typing...</div>
-        <div class="formContainer">
-            <form on:submit|preventDefault={handleSendMessage}>
-                <input type="text" placeholder="Enter message" bind:value={messageInputValue} />
-            </form>
-            <span></span>
-        </div>
-    </div>
+    {/if}
 {:catch error}
 	<p style="color: red">{error.message}</p>
 {/await}
@@ -89,7 +114,6 @@
 <!-- ######################################## -->
 
 <style>
-
     .formContainer {
         position: absolute;
         bottom: 0;
@@ -183,6 +207,7 @@
     .message.left .text {
         background-color: #e4e6eb;
         color: var(--black);
+        font-weight: 400;
     }
 
     .message.closeup {

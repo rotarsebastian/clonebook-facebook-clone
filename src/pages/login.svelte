@@ -66,6 +66,7 @@
         if(res.status === 1) {
             $store.isAuthenticated = true;
             $store.user = res.loggedUser;
+            $store.accessToken = res.accessToken;
             localStorage.setItem('refreshToken', res.refreshToken);
             $goto('./home');
             return showNotification('success', 'You are now logged in!');

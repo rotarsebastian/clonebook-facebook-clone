@@ -3,8 +3,15 @@
     import { store } from './../../../../stores/store.js';
     import { goto } from '@sveltech/routify';
 
-    const openChat = friend => {
-        console.log('openChat');
+    export let hideDrop = undefined;
+
+    const openChat = id => {
+        const friend = $store.user.friends.find(friend => friend.friend_id === id);
+        if(friend) {
+            $store.chatUserStore = null;
+            setTimeout(() => $store.chatUserStore = friend, 100);
+            hideDrop('messagesDrop');
+        }
     }
 
 </script>
@@ -15,23 +22,19 @@
     <div class="itemsContainer">
         <div class="items">
 
-            <div class="item" on:click={() => openChat('friend')}>
-                <ProfileImg size={2} />
-                <div class="profile">
-                    <div class="name">{$store.user.first_name}</div>
-                    <!-- Cut message before -->
-                    <div class="info">Hello! Can I...</div> 
-                </div>
-            </div>
-
-            <div class="item" on:click={() => openChat('friend')}>
-                <ProfileImg size={2} />
-                <div class="profile">
-                    <div class="name">{$store.user.first_name}</div>
-                    <!-- Cut message before -->
-                    <div class="info">Hello! Can I...</div> 
-                </div>
-            </div>
+            {#if $store.messages.length === 0}
+                <div>No new messages</div>
+                {:else}
+                    {#each $store.messages as message}
+                        <div class="item" on:click={() => openChat(message.from)}>
+                            <ProfileImg size={2} img={message.from_user_image} slideShowImgs={[ message.from_user_image ]} />
+                            <div class="profile">
+                                <div class="name">{message.from_user_first_name}</div>
+                                <div class="info">{message.text.length > 15 ? `${message.text.slice(0, 15)}...` : message.text}</div> 
+                            </div>
+                        </div>
+                    {/each}
+            {/if}
 
         </div>
     </div>

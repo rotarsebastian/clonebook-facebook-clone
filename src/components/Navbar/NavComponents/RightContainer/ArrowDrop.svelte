@@ -11,15 +11,10 @@
         if(response.status === 1) {
             localStorage.removeItem('refreshToken');
             $goto('../login');
-            $store = {
-                chatUserStore: null,
-                posts: [],
-                isAuthenticated: false,
-                user: {
-                    friends: [],
-                    images: []
-                }
-            }
+            $store.chatUserStore = null;
+            $store.posts = [];
+            $store.isAuthenticated = false;
+            $store.user = { friends: [], images: [] };
         }
     }
 

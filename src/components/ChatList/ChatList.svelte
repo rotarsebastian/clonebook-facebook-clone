@@ -1,6 +1,11 @@
 <script>    
     import IconUser from '../MiniComponents/IconUser.svelte';
     import { store } from '../../stores/store.js';
+
+    const changeChatContainer = contact => {
+        $store.chatUserStore = null;
+        setTimeout(() => $store.chatUserStore = contact, 100);
+    }
      
 </script>
 
@@ -9,7 +14,7 @@
     <div id="activeChatList">
         <div id="title">Contacts</div>
         {#each $store.user.friends as contact}
-            <div class="activeUser" on:click={() => $store.chatUserStore = contact} >
+            <div class="activeUser" on:click={() => changeChatContainer(contact)} >
                 <IconUser user={contact} />
                 {#if contact.hasOwnProperty('signOutTime')}
                     <span class="signOutTime">{contact.signOutTime}</span>

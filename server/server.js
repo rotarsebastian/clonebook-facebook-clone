@@ -39,7 +39,7 @@ const PORT = process.env.PORT || 9999;
 const server = app.listen(PORT, err => err ? console.log('Server ERROR...') : console.log('Server listening on port: ' + PORT));
 
 // ====================== INIT SOCKET ======================
-const io = module.exports.io = socketio.listen(server);
+const io = module.exports.io = socketio(server);
 
 // ====================== SOCKET ======================
 io.on('connection', manageSocket);

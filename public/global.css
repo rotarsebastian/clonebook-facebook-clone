@@ -76,3 +76,29 @@ img.profileImg {
 .default-notification-style-button {
 	color: #fff !important;
 }
+
+/* scrollbar */
+::-webkit-scrollbar {
+    width: 5px;
+    min-height: 300px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: #fff;
+    width: 5px;
+
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c9c9c963; 
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-track-piece {
+    width: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b6b6b6; 
+}
