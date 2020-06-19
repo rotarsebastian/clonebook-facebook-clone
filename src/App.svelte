@@ -17,7 +17,6 @@
 		} 
 	}
 
-
 	const isLoggedIn = checkAuth();
 </script>
 

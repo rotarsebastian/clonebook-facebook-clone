@@ -7,17 +7,36 @@
     import MessagesDrop from './MessagesDrop.svelte';
     import NotificationsDrop from './NotificationsDrop.svelte';
     import { getUserNotifications } from './../../../../helpers/notifications.js';
-    import { onDestroy } from 'svelte';
+    import io from 'socket.io-client';
+    import { onMount, onDestroy } from 'svelte';
 
-    let eventSource;
+    onMount(() => {
+        initSocket();
+    });
 
 	onDestroy(() => {
-		if(eventSource) eventSource.close();
-	});
+        if(eventSource) eventSource.close();
+        if($store.socket) socket.disconnect();
+    });
+    
+    const socketUrl = 'http://localhost:9999';
+    let eventSource;
 
     const iconsContainer = ['create minimize', 'messages', 'notifications', 'dropdown minimize'];
 
     let dropdowns = { showArrowDrop: false, showMessagesDrop: false, showNotifDrop: false, showCreateDrop: false };
+
+    const initSocket = () => {
+        const socketInit = io(socketUrl);
+        $store.socket = socketInit;
+
+        $store.socket.emit('checkToken', { token: $store.accessToken } );
+
+        $store.socket.on('authorization', res => {
+            if(res.status !== 1) $store.socket.disconnect();
+            else console.log(res);
+        });
+    }
 
 	const getUserNotif = () => {
         setTimeout(async() => {

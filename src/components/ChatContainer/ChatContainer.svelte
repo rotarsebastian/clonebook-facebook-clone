@@ -2,9 +2,8 @@
     import IconUser from '../MiniComponents/IconUser.svelte';
     import ProfileImg from './../MiniComponents/ProfileImage.svelte';
     import { store } from '../../stores/store.js';    
-    import openSocket from 'socket.io-client';
-    
-    let messagesBox;
+
+    let messagesBox, messageInputValue = '';
 
     const messages = [
         { from: 'Sebi', text: 'Hey!' },
@@ -20,10 +19,17 @@
         { from: 'Sebi', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
         { from: 'Sebi', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
         { from: 'Ana', text: 'Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You? Good! You?' },
-    ]
+    ];
 
     const getMessages = async() => {
         // console.log($store.chatUserStore);
+    }
+
+    const handleSendMessage = async() => {
+        if(messageInputValue.length > 0) {
+            console.log(messageInputValue);
+            messageInputValue = '';
+        }
     }
 
     $: messagesData = getMessages($store.chatUserStore);
@@ -70,8 +76,8 @@
         </div>
         <div class="chatIsTyping">{$store.chatUserStore.name.split(' ')[0]} is typing...</div>
         <div class="formContainer">
-            <form>
-                <input type="text" placeholder="Enter message" />
+            <form on:submit|preventDefault={handleSendMessage}>
+                <input type="text" placeholder="Enter message" bind:value={messageInputValue} />
             </form>
             <span></span>
         </div>

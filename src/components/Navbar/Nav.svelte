@@ -2,7 +2,7 @@
     import LeftContainer from './NavComponents/LeftContainer.svelte';
     import RightContainer from './NavComponents/RightContainer/RightContainer.svelte';
     import MainContainer from './NavComponents/MainContainer.svelte'  
-	import Modal from './../Modals/Modal.svelte';   
+    import Modal from './../Modals/Modal.svelte';   
 </script>
 
 <!-- ######################################## -->
