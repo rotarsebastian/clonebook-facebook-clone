@@ -31,9 +31,13 @@
     const showMoreMessages = async() => {
         const result = await getConversation($store.chatUserStore.friend_id, loaded + 20, $store.accessToken);
         if(result.data.messages[0].date !== conversation.messages[0].date) {
+            const { date: firstElemDate, text } = conversation.messages[0];
+
             conversation.messages = [ ...result.data.messages, ...conversation.messages ];
             conversation.messages = conversation.messages.filter((v,i,a)=>a.findIndex(t=>(t.date === v.date))===i);
             loaded += result.data.messages.length;
+
+            setTimeout(() => document.getElementById(`${firstElemDate}`).scrollIntoView({ behavior: 'smooth' }), 100);
         }
     }   
 
@@ -82,6 +86,7 @@
                     {#if conversation}
                         {#each conversation.messages as message, index}
                             <div 
+                                id={message.date}
                                 class={`message ${message.from === $store.user._id ? 'right' : 'left'}`} 
                                 class:closeup={conversation.messages[index + 1] && conversation.messages[index + 1].from === message.from}
                                 class:roundTop={(conversation.messages[index - 1] && conversation.messages[index - 1].from !== message.from)|| conversation.messages.indexOf(message) === 0}
