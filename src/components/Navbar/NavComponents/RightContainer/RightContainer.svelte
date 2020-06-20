@@ -42,9 +42,16 @@
 
         // ====================== ON NEW MESSEGE RECEIVED ======================
         socketInit.on('gotMessage', message => {
-            const findFromIndex = $store.messages.findIndex(msg => msg.from === message.from);
-            if(findFromIndex === -1) $store.messages = [ message, ...$store.messages ];
-            else $store.messages[findFromIndex].text = message.text;
+            const findFromIndex = $store.user.messages.findIndex(msg => msg.from === message.from);
+            if(findFromIndex === -1) $store.user.messages = [ message, ...$store.user.messages ];
+            else {
+                $store.user.messages[findFromIndex].text = message.text;
+                if($store.chatUserStore === null || $store.chatUserStore.friend_id !== message.from) $store.user.messages[findFromIndex].seen = message.seen;
+                if(findFromIndex !== 0) {
+                    $store.user.messages[findFromIndex] = $store.user.messages[0];
+                    $store.user.messages[0] = message;
+                }
+            }
             
             if($store.chatUserStore !== null && $store.chatUserStore.friend_id === message.from) {
                 $store.assignNewMessage = message;
@@ -166,8 +173,8 @@
                         <span class={"iconSVG " + elem}></span>
                         {#if $store.notifications && $store.notifications.filter(notif => notif.type !== 'sentreq').length > 0 && elem === 'notifications'}
                             <span class="notificationsCount">{$store.notifications.filter(notif => notif.type !== 'sentreq').length}</span>
-                            {:else if $store.messages && $store.messages.length > 0 && elem === 'messages'}
-                            <span class="notificationsCount">{$store.messages.length}</span>
+                            {:else if $store.user.messages && $store.user.messages.filter(msg => msg.seen !== true).length > 0 > 0 && elem === 'messages'}
+                            <span class="notificationsCount">{$store.user.messages.filter(msg => msg.seen !== true).length}</span>
                         {/if}
                     </span>
                 </div>

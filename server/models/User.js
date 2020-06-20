@@ -34,6 +34,9 @@ const UserSchema = new mongoose.Schema({
     images: {
         type: Array,
     },
+    messages: {
+        type: Array,
+    },
     date: {
         type: Date,
         default: Date.now

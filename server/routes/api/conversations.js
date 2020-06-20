@@ -5,38 +5,6 @@ const Conversation = require(__dirname + '/../../models/Conversation');
 const User = require(__dirname + '/../../models/User');
 const ObjectId = require('mongoose').Types.ObjectId;
 
-global.globalConversations = 0;
-global.touchedConversation = null;
-
-// ====================== WATCH USER friendRequests ======================
-router.get('/subscribe', async(req, res) => {
-    try {
-        let localConversations = 0;
-        res.set('Content-Type', 'text/event-stream');
-        res.set('Connection', 'Keep-alive');
-        res.set('Cache-Control', 'no-cache');
-
-        setInterval(async() => {
-            if(localConversations === globalConversations) return res.status(200).write('data: 0' + '\n\n');
-            else if(localConversations < globalConversations) {
-                let changedRequest = null;
-
-                changedRequest = { ...touchedConversation};  
-
-                // setTimeout(() => {
-                //     touchedConversation = null;
-                // }, 2000);
-
-                localConversations = globalConversations;
-                return res.status(200).write(`data: ${JSON.stringify(changedRequest)}`  + '\n\n');
-            }
-        }, 1000);
- 
-    } catch (err) {
-        return res.json({ status: 0, message: 'Error getting friendRequests!'});
-    }
-});
-
 // ====================== GET CONVERSATION ======================
 router.get('/:id', isAuthenticated, async(req, res) => {
     try {
@@ -65,6 +33,52 @@ router.get('/:id', isAuthenticated, async(req, res) => {
 
     } catch (err) {
         return res.json({ status: 0, message: 'Error getting conversation!'});
+    }
+});
+
+// ====================== GET MESSAGES NOTIFICATIONS ======================
+router.get('/', isAuthenticated, async(req, res) => {
+    try {
+        // ====================== GET THE USER ID ======================
+        const { _id } = req.user;
+        if(!_id) return res.json({ status: 0, message: 'Missing id!', code: 404 });
+
+
+        // ====================== GET THE OFFSET ======================
+        const { offset } = req.query;
+        if(!offset) return res.json({ status: 0, message: 'Invalid request'});
+
+        if(!Number.isInteger(Number(offset))) return res.json({ status: 0, message: 'Offset should be a number', code: 404 });
+
+        // ====================== GET MESSAGES NOTIFICATIONS ======================
+        const user_requests = await User.findById(_id).select('messages -_id').sort('-date');
+
+        // ====================== EVERYTHING OK ======================s
+        return res.json({ status: 1, message: 'Messages notifs retrieved successfully!', data: user_requests });
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error getting messages notifs!'});
+    }
+});
+
+// ====================== UPDATE NEW MESSAGES ======================
+router.patch('/:id', isAuthenticated, async(req,res) => {
+    try {
+        // ====================== GET THE USER IDS ======================
+        const { _id } = req.user;
+        const { id } = req.params;
+        if(!_id || !id) return res.json({ status: 0, message: 'Missing ids!', code: 404 });
+
+        // ====================== GET CONVERSATION ======================
+        await User.findOneAndUpdate({ _id, messages: { $elemMatch: { from: id }}},
+            { $set: { 'messages.$.seen': true } }, 
+            { useFindAndModify: false });
+
+        // ====================== EVERYTHING OK ======================s
+        return res.json({ status: 1, message: 'Conversation seen successfully!' });
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error marking conversation as seen!'});
     }
 });
 

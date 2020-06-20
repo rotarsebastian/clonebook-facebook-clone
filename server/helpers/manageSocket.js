@@ -1,6 +1,6 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const { saveMessageIntoDB } = require(__dirname + '/messages');
+const { saveMessageIntoDB, createMessageNotification } = require(__dirname + '/messages');
 
 let users = [];
 
@@ -27,19 +27,24 @@ module.exports = socket => {
         });
     });
 
+    // ====================== SEND NEW MESSAGE ======================
     socket.on('sendMessage', data => {
         if(!data) return;
         const { from, to, text, from_user_first_name, from_user_image } = data;
         if(!from || !to || !text) return;
 
+        const message = { from, text, from_user_first_name, from_user_image, date: new Date() };
+        
         saveMessageIntoDB(from, to, text);
+        createMessageNotification(message, to);
 
         const sendToSocketId = getUserSocketId(to);
         if(!sendToSocketId) return;
 
-        io.to(sendToSocketId).emit('gotMessage', { from, text, from_user_first_name, from_user_image, date: new Date() });
+        io.to(sendToSocketId).emit('gotMessage', message);
     });
 
+    // ====================== USER DISCONECTED ======================
     socket.on('disconnect', () => {
         const initialUsers = [ ...users ];
         users = users.filter(user => user.socketId !== socket.id);

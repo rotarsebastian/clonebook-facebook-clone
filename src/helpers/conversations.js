@@ -17,5 +17,24 @@ export const getConversation = async(friend, offset, token) => {
     catch(err) {
       return { status: 0, message: 'Can not connect to the server', code: 999 };
     }
-  };
+};
+
+export const markConversationAsSeen = async(id, token) => {
+  try {
+    const options = {
+        method: 'PATCH',
+        headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      }
+    };
+    const response = await fetch(conversationsEndpoint + `/${id}`, options);
+    const data = await response.json();
+    return data;
+  }
+  catch(err) {
+    return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};
   

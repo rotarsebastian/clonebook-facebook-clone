@@ -22,10 +22,10 @@
     <div class="itemsContainer">
         <div class="items">
 
-            {#if $store.messages.length === 0}
+            {#if $store.user.messages.length === 0}
                 <div>No new messages</div>
                 {:else}
-                    {#each $store.messages as message}
+                    {#each $store.user.messages as message}
                         <div class="item" on:click={() => openChat(message.from)}>
                             <ProfileImg size={2} img={message.from_user_image} slideShowImgs={[ message.from_user_image ]} />
                             <div class="profile">

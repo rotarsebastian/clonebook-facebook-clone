@@ -2,18 +2,19 @@
     import IconUser from '../MiniComponents/IconUser.svelte';
     import ProfileImg from './../MiniComponents/ProfileImage.svelte';
     import { store } from '../../stores/store.js';    
-    import { getConversation } from '../../helpers/conversations.js';    
+    import { getConversation, markConversationAsSeen } from '../../helpers/conversations.js';    
 
     let messagesBox, messageInputValue = '', loaded = 0;
 
-    let conversation = undefined, inputRef;
+    let conversation = undefined, currentChatPerson = undefined, inputRef;
     $: conversation = $store.assignNewMessage 
         ? 
         { ...conversation, messages: [ ...conversation.messages, { ...$store.assignNewMessage } ] } 
         : conversation, 
-        updateConversation()
+        updateConversation();
 
     const getMessages = async() => {
+        updateNewMessagesLength();
         const result = await getConversation($store.chatUserStore.friend_id, 0, $store.accessToken);
         conversation = result.data;
         loaded += result.data.messages.length;
@@ -26,6 +27,15 @@
                 });
             }
         }, 100);
+    }
+
+    const updateNewMessagesLength = () => {
+        const friendId = $store.chatUserStore.friend_id;
+        const newMessageIndex = $store.user.messages.findIndex(msg => msg.from === friendId);
+        if(newMessageIndex !== -1) {
+            $store.user.messages[newMessageIndex].seen = true;
+            markConversationAsSeen($store.user.messages[newMessageIndex].from, $store.accessToken);
+        }
     }
 
     const showMoreMessages = async() => {
