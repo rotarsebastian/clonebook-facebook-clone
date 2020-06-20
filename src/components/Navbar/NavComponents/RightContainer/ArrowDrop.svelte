@@ -61,6 +61,7 @@
         z-index: 2;
         border-radius: 8px;
         overflow: hidden;
+        user-select: none;
     }
 
     #dropdownCaret .itemsContainer .item .icon {
@@ -88,11 +89,13 @@
     #dropdownCaret .itemsContainer .profile .name {
         font-weight: 500;
         font-size: 17px;
+        user-select: none;
     }
 
     #dropdownCaret .itemsContainer .profile .info {
         color: var(--grey);
         font-size: 15px;
+        user-select: none;
     }
 
 

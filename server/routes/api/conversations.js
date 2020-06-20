@@ -51,7 +51,7 @@ router.get('/', isAuthenticated, async(req, res) => {
         if(!Number.isInteger(Number(offset))) return res.json({ status: 0, message: 'Offset should be a number', code: 404 });
 
         // ====================== GET MESSAGES NOTIFICATIONS ======================
-        const user_requests = await User.findById(_id).select('messages -_id').sort('-date');
+        const user_requests = await User.find(_id).select('messages -_id').sort('date');
 
         // ====================== EVERYTHING OK ======================s
         return res.json({ status: 1, message: 'Messages notifs retrieved successfully!', data: user_requests });

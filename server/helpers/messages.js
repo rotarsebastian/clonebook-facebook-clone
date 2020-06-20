@@ -31,7 +31,7 @@ const createMessageNotification = async(message, _id) => {
     };
 
     const searchQuery = exists ? { _id, messages: { $elemMatch: { from: message.from }}} : { _id };
-    const updateQuery = exists ? { $set: messageNotif  } : { $addToSet: { messages: messageNotif } };
+    const updateQuery = exists ? { $set: messageNotif  } : { $addToSet: { messages: messageNotif }, $sort: { date: -1 } };
 
     await User.findOneAndUpdate(
         searchQuery,

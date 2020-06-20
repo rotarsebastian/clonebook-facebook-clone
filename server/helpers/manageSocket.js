@@ -22,7 +22,7 @@ module.exports = socket => {
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if(err) return socket.emit('authorization', { status: 0, msg: 'User not authorized!', err });
             users.push({ socketId: socket.id, userId: user._id });
-            console.log('User connected!');
+            // console.log('User connected!');
             socket.emit('authorization', { status: 1 });
         });
     });
@@ -44,10 +44,22 @@ module.exports = socket => {
         io.to(sendToSocketId).emit('gotMessage', message);
     });
 
+    // ====================== PERSON IS TYPING ======================
+    socket.on('isTyping', data => {
+        if(!data) return;
+        const { from, to, typing } = data;
+        if(!from || !to) return;
+
+        const sendToSocketId = getUserSocketId(to);
+        if(!sendToSocketId) return;
+
+        io.to(sendToSocketId).emit('printIsTyping', { from, typing });
+    });
+
     // ====================== USER DISCONECTED ======================
     socket.on('disconnect', () => {
         const initialUsers = [ ...users ];
         users = users.filter(user => user.socketId !== socket.id);
-        if(initialUsers.length > users.length) console.log('User disconnected');
+        // if(initialUsers.length > users.length) console.log('User disconnected');
     });
 }

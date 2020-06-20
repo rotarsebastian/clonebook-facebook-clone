@@ -4,9 +4,9 @@
     import { store } from '../../stores/store.js';    
     import { getConversation, markConversationAsSeen } from '../../helpers/conversations.js';    
 
-    let messagesBox, messageInputValue = '', loaded = 0;
+    let messagesBox, messageInputValue = '', loaded = 0, timeout = undefined, typing = false;
 
-    let conversation = undefined, currentChatPerson = undefined, inputRef;
+    let conversation = { messages: [] }, currentChatPerson = undefined, inputRef;
     $: conversation = $store.assignNewMessage 
         ? 
         { ...conversation, messages: [ ...conversation.messages, { ...$store.assignNewMessage } ] } 
@@ -16,17 +16,19 @@
     const getMessages = async() => {
         updateNewMessagesLength();
         const result = await getConversation($store.chatUserStore.friend_id, 0, $store.accessToken);
-        conversation = result.data;
-        loaded += result.data.messages.length;
-        setTimeout(() => { 
-            if(messagesBox) {
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-                inputRef.focus();
-                messagesBox.addEventListener('scroll', () => {
-                    if(messagesBox.scrollTop === 0) showMoreMessages();
-                });
-            }
-        }, 100);
+        if(result.data !== null) {
+            conversation = result.data;
+            if(result.data.hasOwnProperty('messages')) loaded += result.data.messages.length;
+            setTimeout(() => { 
+                if(messagesBox) {
+                    messagesBox.scrollTop = messagesBox.scrollHeight;
+                    inputRef.focus();
+                    messagesBox.addEventListener('scroll', () => {
+                        if(messagesBox.scrollTop === 0) showMoreMessages();
+                    });
+                }
+            }, 100);
+        }
     }
 
     const updateNewMessagesLength = () => {
@@ -68,14 +70,43 @@
                 from_user_image: $store.user.images[0] 
             };
             $store.socket.emit('sendMessage', newMessage );
-
             conversation.messages = [ ...conversation.messages, { from: $store.user._id, text: messageInputValue.trim(), date: new Date() } ];
             messageInputValue = '';
             setTimeout(() => messagesBox ? messagesBox.scrollTop = messagesBox.scrollHeight : false, 100);
         }
     }
 
+    const handleTyping = e => {
+        // ====================== AUTO SIZE TEXTAREA ======================
+        inputRef.style.height = ''; 
+        inputRef.style.height = Math.min(inputRef.scrollHeight, 80) + 'px';
+
+        // ====================== HANDLE TYPING ======================
+        if(e.keyCode !== 13) {
+            if(!typing) {
+                typing = true;
+                $store.socket.emit('isTyping', { from: $store.user._id, to: $store.chatUserStore.friend_id, typing: true });
+                timeout = setTimeout(typingTimeout, 1500);
+            }
+        } 
+    }
+
+    const handleKeyPress = e => {
+        if (e.keyCode === 13 && e.shiftKey === false) {
+            e.preventDefault();
+            clearTimeout(timeout);
+            typingTimeout();
+            handleSendMessage();
+        }
+    }
+
+    const typingTimeout = () => {
+        typing = false;
+        $store.socket.emit('isTyping', { from: $store.user._id, to: $store.chatUserStore.friend_id, typing: false });
+    }
+
     const messagesData = getMessages($store.chatUserStore);
+
 </script>
 
 <!-- ######################################## -->
@@ -93,7 +124,7 @@
 
             <div class="chatMessagesContainer" bind:this={messagesBox}>
                 <div class="chatMessages"> 
-                    {#if conversation}
+                    {#if conversation.messages.length > 0}
                         {#each conversation.messages as message, index}
                             <div 
                                 id={message.date}
@@ -118,21 +149,27 @@
                                 </div>
                             </div>
                         {/each}
+                        {:else}
+                        <div class="noMessages">Start a new conversation with {$store.chatUserStore.name.split(' ')[0]}</div>
                     {/if}
                 </div>
             </div>
-            <div class="chatIsTyping">{$store.chatUserStore.name.split(' ')[0]} is typing...</div>
 
             <div class="formContainer">
+                {#if $store.chatUserStore.isTyping}
+                    <div class="chatIsTyping">{$store.chatUserStore.name.split(' ')[0]} is typing...</div>
+                {/if}
                 <form on:submit|preventDefault={handleSendMessage}>
-                    <input 
+                    <textarea 
                         type="text" 
                         placeholder="Enter message" 
                         bind:value={messageInputValue} 
                         bind:this={inputRef} 
-                    />
+                        on:input={handleTyping}
+                        on:keydown={handleKeyPress}
+                    ></textarea>
+                    <span on:click={handleSendMessage}></span>
                 </form>
-                <span on:click={handleSendMessage}></span>
             </div>
 
         </div>
@@ -149,28 +186,61 @@
         bottom: 0;
         padding: .5rem;
         display: flex;
+        flex-direction: column;
         width: 100%;
-        align-items: center;
         border-bottom-right-radius: 8px;
         border-bottom-left-radius: 8px;
+        background: #fff;
     }
 
-    .formContainer input {
+    .noMessages {
+        font-size: .8rem;
+        text-align: center;
+        color: var(--grey);
+        font-style: italic;
+        margin: .5rem 1rem;
+    }
+
+    .formContainer textarea {
         background-color: #e4e6eb;
         padding: .5rem .8rem;
+        outline: none;
+        border: none;
+        resize: none;
+        width: 90%;
+        height: 2rem;
+        border-radius: 8px;
+        font-family: system-ui, -apple-system, system-ui, ".SFNSText-Regular", sans-serif;
     }
-    .formContainer input::placeholder {
+    .formContainer textarea::placeholder {
         font-size: .85rem;
         letter-spacing: .3px;
         color: rgb(150, 150, 150);
         font-weight: 200;
     }
 
-    .formContainer form {
-        width: 89%;
+    .formContainer textarea::placeholder {
+        font-size: .85rem;
+        letter-spacing: .3px;
+        color: rgb(150, 150, 150);
+        font-weight: 200;
     }
 
-    .formContainer span {
+    .formContainer textarea::-webkit-scrollbar-track {
+        background: #e4e6eb;
+    }
+
+    .formContainer textarea::-webkit-scrollbar-thumb {
+        background: rgb(141, 141, 141);
+    }
+
+    .formContainer form {
+        width: 100%;
+        display: flex;
+        align-items: center;
+    }
+
+    .formContainer form span {
         margin-left: .5rem;
         cursor: pointer;
         filter: invert(33%) sepia(50%) saturate(3607%) hue-rotate(203deg) brightness(99%) contrast(91%);

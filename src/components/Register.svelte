@@ -25,13 +25,21 @@
         return monthsArray;
     }
 
+    const capitalizeEachName = text => {
+        return text.trim()
+            .toLowerCase()
+            .split(' ')
+            .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+            .join(' ');
+    }
+
     const handleRegister = async() => {
         // ====================== VALIDATION ======================
         const registerData = [ 
-            { type: 'first_name', val: registerFirstName }, 
-            { type: 'last_name', val: registerSurname }, 
+            { type: 'first_name', val: capitalizeEachName(registerFirstName) }, 
+            { type: 'last_name', val: capitalizeEachName(registerSurname) }, 
             { type: 'birthdate', val: `${year}-${month < 10 ? '0' + month : month}-${day}` }, 
-            { type: 'email', val: registerEmail }, 
+            { type: 'email', val: registerEmail.trim() }, 
             { type: 'password', val: registerPass }, 
             { type: 'gender', val: gender }, 
         ];
@@ -45,6 +53,8 @@
 
         // ====================== RESPONSE ======================
         if(res.status === 1) {
+            registerFirstName = '', registerSurname = '', registerEmail = '', registerPass = '', gender = undefined;
+            day = parseInt(moment().format('D')), month = moment().month() + 1, year = moment().year();
             return showNotification('success', 'An email was sent to validate your account');
         } else return showNotification('danger', res.message);
     }
@@ -166,7 +176,6 @@
         opacity: .7;
     }
 
-
     .genderContainer {
         display: flex;
         margin-top: 10px;
@@ -177,6 +186,7 @@
     .genderContainer input {
         width: 20px;
         height: 18px;
+        margin-right: 4px;
     }
 
     .genderContainer label {

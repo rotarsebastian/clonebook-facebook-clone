@@ -57,6 +57,14 @@
                 $store.assignNewMessage = message;
             }
         })
+
+        // ====================== DISPLAY USER TYPING ======================
+        socketInit.on('printIsTyping', ({ from, typing }) => {
+            if($store.chatUserStore && $store.chatUserStore.friend_id === from) {
+                if(typing) $store.chatUserStore.isTyping = true;
+                else $store.chatUserStore.isTyping = false;
+            }
+        })
     }
 
     // ====================== GET INITIAL NOTIFICATIONS ======================
@@ -90,7 +98,7 @@
                                         image: updatedNotif.images[0],  
                                         friend_id: updatedNotif.from
                                     };
-                                    $store.user.friends = [ ...$store.user.friends, newFriend ]
+                                    $store.user.friends = [ ...$store.user.friends, newFriend ];
                                 }
                             } 
                         } 
