@@ -72,6 +72,7 @@
             $store.socket.emit('sendMessage', newMessage );
             conversation.messages = [ ...conversation.messages, { from: $store.user._id, text: messageInputValue.trim(), date: new Date() } ];
             messageInputValue = '';
+            inputRef.style.height = '2rem';
             setTimeout(() => messagesBox ? messagesBox.scrollTop = messagesBox.scrollHeight : false, 100);
         }
     }
@@ -257,6 +258,7 @@
         height: 21rem;
         font-size: 1rem;
         overflow-y: scroll;
+        padding-bottom: 0;
     }
 
     .chatIsTyping {
@@ -349,6 +351,7 @@
     }
 
     .chatContainer {
+        z-index: 999;
         position: fixed;
         bottom: 2vh;
         right: 5vh;
@@ -369,6 +372,7 @@
         cursor: pointer;
         position: relative;
         box-shadow: 0 0 10px 0 #eee;
+        border-radius: 8px;
     }
 
     .chatContainer .topBar .closeChatContainer { 

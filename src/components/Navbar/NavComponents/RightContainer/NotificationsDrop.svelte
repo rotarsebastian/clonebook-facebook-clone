@@ -7,7 +7,14 @@
     const respondRequest = async(notification, answer) => {
         if(answer === 'yes') await answerFriendReq(notification, 1, $store.accessToken);
         else await answerFriendReq(notification, 0, $store.accessToken);
-    }
+
+        const newFriend = { 
+            name: `${notification.first_name} ${notification.last_name}`,  
+            image: notification.images[0],  
+            friend_id: notification.from
+        };
+        $store.user.friends = [ ...$store.user.friends, newFriend ];
+}
 
     const handleDeleteNotification = async(id) => {
         const res = await deleteNotification(id, $store.accessToken);

@@ -2,6 +2,7 @@
     import Nav from './../components/Navbar/Nav.svelte';
     import { route, goto } from '@sveltech/routify';
     import { store } from './../stores/store.js';
+    import ChatContainer from './../components/ChatContainer/ChatContainer.svelte';
 
     const excludedPaths = [
         '/login', '/register', '/forgotPassword', 'changePassword'
@@ -16,6 +17,9 @@
 
 {#if $store.isAuthenticated }
     <Nav />
+    {#if $store.chatUserStore}
+        <ChatContainer />
+    {/if}
     <slot />
 
     {:else}

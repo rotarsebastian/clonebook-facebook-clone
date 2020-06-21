@@ -7,6 +7,7 @@
     import MessagesDrop from './MessagesDrop.svelte';
     import NotificationsDrop from './NotificationsDrop.svelte';
     import { getUserNotifications } from './../../../../helpers/notifications.js';
+    import { markConversationAsSeen } from './../../../../helpers/conversations.js';    
     import io from 'socket.io-client';
     import { onMount, onDestroy } from 'svelte';
 
@@ -55,6 +56,10 @@
             
             if($store.chatUserStore !== null && $store.chatUserStore.friend_id === message.from) {
                 $store.assignNewMessage = message;
+                setTimeout(() => markConversationAsSeen(message.from, $store.accessToken), 500);
+            } else if($store.chatUserStore === null) {
+                $store.chatUserStore = $store.user.friends.find(friend => friend.friend_id === message.from);
+                setTimeout(() => markConversationAsSeen(message.from, $store.accessToken), 500);
             }
         })
 
@@ -88,6 +93,8 @@
                     if(updatedNotif.type === 'sentreq') return;
                     // ====================== CHECK IF REQUEST MATCHES THE USER ======================
                     if(updatedNotif.to === $store.user._id) { 
+
+                        // ====================== HANDLE NEW NOTIFICATION ======================
                         if(updatedNotif.hasOwnProperty('isNew')) {
                             delete updatedNotif.isNew;
                             if($store.notifications.findIndex(notif => notif._id === updatedNotif._id) === -1) {
@@ -102,7 +109,9 @@
                                 }
                             } 
                         } 
-                    } else if(updatedNotif.hasOwnProperty('deletedNotifId')) {
+                    } 
+                    // ====================== HANDLE DELETED NOTIFICATION ======================
+                    else if(updatedNotif.hasOwnProperty('deletedNotifId')) {
                         const filteredNotif = $store.notifications.filter(notif => notif._id !== updatedNotif.deletedNotifId);
                         $store.notifications = filteredNotif;
                         if(updatedNotif.hasOwnProperty('from')) {
@@ -110,7 +119,18 @@
                             const filteredNotifs = $store.notifications.filter(notif => notif !== foundSentReq);
                             $store.notifications = filteredNotifs;
                         }
-                    }
+                    } 
+
+                    // ====================== HANDLE DELETED FRIEND ======================
+                    else if(updatedNotif.hasOwnProperty('deletedFriend')) {
+                        if(updatedNotif.deletedFriend === $store.user._id) {
+                            // ====================== CLEARING FRIEND DATA ======================
+                            $store.user.friends = $store.user.friends.filter(friend => friend.friend_id !== updatedNotif.from);
+                            $store.user.messages = $store.user.messages.filter(message => message.from !== updatedNotif.from);
+
+                            if($store.chatUserStore && $store.chatUserStore.friend_id === updatedNotif.from) $store.chatUserStore = null;
+                        }
+                    } 
 				}
 			} catch (err) {
 				if(err) return console.log('ERROR', err);

@@ -12,5 +12,7 @@ export let store = writable({
     messages: [],
     selectedProfileImage: null,
     temporaryImages: [],
-    assignNewMessage: null
+    assignNewMessage: null,
+    onlineFriends: [],
+    disconnectedUsersTimes: []
 });

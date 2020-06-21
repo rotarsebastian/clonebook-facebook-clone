@@ -19,12 +19,14 @@ const rateLimit = require('express-rate-limit');
 
 // ====================== ROUTES ======================
 const usersRoute = require(__dirname + '/./api/users');
+const statusesRoute = require(__dirname + '/./api/statuses');
 const postsRoute = require(__dirname + '/./api/posts');
 const notifRoute = require(__dirname + '/./api/notifications');
 const conversationsRoute = require(__dirname + '/./api/conversations');
 
 // ====================== ADD ROUTES ======================
 app.use('/users', usersRoute);
+app.use('/statuses', statusesRoute);
 app.use('/posts', postsRoute);
 app.use('/notifications', notifRoute);
 app.use('/conversations', conversationsRoute);

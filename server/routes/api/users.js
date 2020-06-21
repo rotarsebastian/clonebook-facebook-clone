@@ -2,6 +2,7 @@
 require('dotenv').config();
 const router = require('express').Router();
 const User = require(__dirname + '/../../models/User');
+const Conversation = require(__dirname + '/../../models/Conversation');
 const Post = require(__dirname + '/../../models/Post');
 const Key = require(__dirname + '/../../models/Key');
 const Refresh_Token = require(__dirname + '/../../models/RefreshToken');
@@ -517,8 +518,12 @@ router.patch('/friend/delete/:id', isAuthenticated, async(req, res) => {
         if(!id) return res.json({ status: 0, message: 'Missing param id!', code: 404 });
 
         // ====================== DELETE FRIEND ======================
-        await User.findOneAndUpdate({ _id }, { $pull: { friends: { friend_id: id } } }, { upsert: true, useFindAndModify: false });
-        await User.findOneAndUpdate({ _id: id }, { $pull: { friends: { friend_id: _id } } }, { upsert: true, useFindAndModify: false });
+        await User.findOneAndUpdate({ _id }, { $pull: { friends: { friend_id: id }, messages: { from: id } } }, { upsert: true, useFindAndModify: false });
+        await User.findOneAndUpdate({ _id: id }, { $pull: { friends: { friend_id: _id }, messages: { from: _id }  } }, { upsert: true, useFindAndModify: false });
+        await Conversation.findOneAndDelete({ $or: [ { user1: id, user2: _id }, { user1: _id, user2: id } ] });
+
+        touchedRequest = { deletedFriend: id, from: _id };
+        globalRequests++;
 
         // ====================== EVERYTHING OK ======================s
         return res.json({ status: 1, message: 'Deleted friend!' });

@@ -1,11 +1,13 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { saveMessageIntoDB, createMessageNotification } = require(__dirname + '/messages');
+const User = require(__dirname + '/../models/User');
 
-let users = [];
+global.currentlyConnectedUsers = [];
+global.disconnectedUsersTimes = [];
 
 const getUserSocketId = userId => {
-    const user = users.find(user => user.userId === userId);
+    const user = currentlyConnectedUsers.find(user => user.userId === userId);
     if(!user) return false;
     return user.socketId;
 }
@@ -21,8 +23,9 @@ module.exports = socket => {
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if(err) return socket.emit('authorization', { status: 0, msg: 'User not authorized!', err });
-            users.push({ socketId: socket.id, userId: user._id });
-            // console.log('User connected!');
+            currentlyConnectedUsers.push({ socketId: socket.id, userId: user._id });
+            disconnectedUsersTimes = disconnectedUsersTimes.filter(user => user.id !== user._id);  
+
             socket.emit('authorization', { status: 1 });
         });
     });
@@ -57,9 +60,9 @@ module.exports = socket => {
     });
 
     // ====================== USER DISCONECTED ======================
-    socket.on('disconnect', () => {
-        const initialUsers = [ ...users ];
-        users = users.filter(user => user.socketId !== socket.id);
-        // if(initialUsers.length > users.length) console.log('User disconnected');
+    socket.on('disconnect', async() => {
+        const disconnectedUser = currentlyConnectedUsers.find(user => user.socketId === socket.id);
+        currentlyConnectedUsers = currentlyConnectedUsers.filter(user => user.socketId !== socket.id);  
+        if(disconnectedUser) disconnectedUsersTimes.push({ id: disconnectedUser.userId, time: new Date() });
     });
 }

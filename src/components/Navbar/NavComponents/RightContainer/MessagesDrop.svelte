@@ -26,11 +26,16 @@
                 <div>No new messages</div>
                 {:else}
                     {#each $store.user.messages as message}
-                        <div class="item" on:click={() => openChat(message.from)}>
-                            <ProfileImg size={2} img={message.from_user_image} slideShowImgs={[ message.from_user_image ]} />
+                        <div class="item" on:click={() => openChat(message.from)} class:notSeen={!message.seen}>
+                            <ProfileImg size={2.25} img={message.from_user_image} slideShowImgs={[ message.from_user_image ]} />
                             <div class="profile">
-                                <div class="name">{message.from_user_first_name}</div>
-                                <div class="info">{message.text.length > 15 ? `${message.text.slice(0, 15)}...` : message.text}</div> 
+                                <div class="data">
+                                    <div class="name">{message.from_user_first_name}</div>
+                                    <div class="text">{message.text.length > 20 ? `${message.text.slice(0, 20)}...` : message.text}</div> 
+                                </div>
+                                {#if !message.seen}
+                                    <span></span>
+                                {/if}
                             </div>
                         </div>
                     {/each}
@@ -43,17 +48,27 @@
 <!-- ######################################## -->
 
 <style>
-    #messagesDrop .itemsContainer .profile {
+    #messagesDrop .itemsContainer .profile .data {
         display: flex;
         flex-direction: column;
+    }
+    #messagesDrop .itemsContainer .profile span {
+        background-color: var(--blue);
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+    }
+    #messagesDrop .itemsContainer .profile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 90%;
         padding-left: .5rem;
         line-height: 20px;
-    }
-
-    #messagesDrop .itemsContainer .profile {
         font-size: 15px;
         font-weight: 400;
     }
+
     #messagesDrop {
         opacity: 0;
         position: absolute;
@@ -73,7 +88,7 @@
         font-size: 17px;
     }
 
-    #messagesDrop .itemsContainer .profile .info {
+    #messagesDrop .itemsContainer .profile .text {
         color: var(--grey);
         font-size: 15px;
     }
@@ -91,6 +106,10 @@
         padding: .5rem;
         position: relative;
         margin-bottom: .5rem;
+    }
+
+    #messagesDrop .itemsContainer .items .item.notSeen .profile .text {
+        color: var(--blue);
     }
 
     #messagesDrop .itemsContainer .items .item:last-of-type {

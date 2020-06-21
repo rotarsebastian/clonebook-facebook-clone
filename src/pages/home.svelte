@@ -1,8 +1,6 @@
 <script>
 	import Posts from './../components/Posts/Posts.svelte';
 	import ChatList from './../components/ChatList/ChatList.svelte';
-	import ChatContainer from './../components/ChatContainer/ChatContainer.svelte';
-	import Modal from './../components/Modals/Modal.svelte';
 	import { store } from './../stores/store.js';
 	import { getAccessToken } from './../helpers/auth';
 	import { getFeedPosts } from './../helpers/posts';
@@ -73,26 +71,21 @@
 {#await $store.isAuthenticated && $store.posts}
 	<p>...waiting</p>
 {:then data}
-	<Modal>
-		<main>
-			<div class="contentContainer">
-				<div class="groupsContainer">
-					<div class="hidden"></div>
-					<div class="groups">Groups</div>
-				</div>
-				<div class="postsContainer">
-					<Posts />
-				</div>
-				<div class="chatlistContainer">
-					<div class="hidden"></div>
-					<div class="chatList"><ChatList /></div>
-				</div>
+	<main>
+		<div class="contentContainer">
+			<div class="groupsContainer">
+				<div class="hidden"></div>
+				<div class="groups">Groups</div>
 			</div>
-			{#if $store.chatUserStore}
-				<ChatContainer />
-			{/if}
-		</main>
-	</Modal>
+			<div class="postsContainer">
+				<Posts />
+			</div>
+			<div class="chatlistContainer">
+				<div class="hidden"></div>
+				<div class="chatList"><ChatList /></div>
+			</div>
+		</div>
+	</main>
 {:catch error}
 	<p style="color: red">{error.message}</p>
 {/await}

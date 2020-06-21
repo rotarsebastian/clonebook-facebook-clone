@@ -32,7 +32,8 @@
 		const res = await deleteFriend(user_profile._id, $store.accessToken);
 		const filteredFriends = $store.user.friends.filter(friend => friend.friend_id !== user_profile._id);
 		$store.user.friends = filteredFriends;
-        showNotification('success', 'Friend removed successfully!');
+		if($store.chatUserStore !== null && $store.chatUserStore.friend_id === user_profile._id) $store.chatUserStore = null;
+		showNotification('success', 'Friend removed successfully!');
 	}
 
 </script>

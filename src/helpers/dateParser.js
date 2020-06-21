@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-export const parseDate = date => {
+export const parseDate = (date, forChat) => {
     const yesterday = moment().subtract(1, 'days').startOf('day');
     const isYesterday = moment(date).isSame(yesterday, 'd');
 
@@ -10,5 +10,5 @@ export const parseDate = date => {
     else if(moment().diff(moment(date), 'hours') === 1) return `1 hr`;
     else if(moment().diff(moment(date), 'minutes') > 1) return `${moment().diff(moment(date), 'minutes')} mins`;
     else if(moment().diff(moment(date), 'minutes') === 1) return `${moment().diff(moment(date), 'minutes')} min`;
-    else return `Just now`;
+    else return forChat ? '1min' : 'Just now';
 }

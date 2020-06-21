@@ -18,7 +18,7 @@ const createMessageNotification = async(message, _id) => {
         'messages.$.from_user_first_name': message.from_user_first_name, 
         'messages.$.from_user_image': message.from_user_image, 
         'messages.$.date': message.date,  
-        'messages.$.seen': false,  
+        'messages.$.seen': false
     } 
     :
     {
@@ -31,12 +31,19 @@ const createMessageNotification = async(message, _id) => {
     };
 
     const searchQuery = exists ? { _id, messages: { $elemMatch: { from: message.from }}} : { _id };
-    const updateQuery = exists ? { $set: messageNotif  } : { $addToSet: { messages: messageNotif }, $sort: { date: -1 } };
+    const updateQuery = exists ? { $set: messageNotif } : { $addToSet: { messages: messageNotif } };
 
+    // ====================== UPDATE OR ADD THE CONVERSATION ======================
     await User.findOneAndUpdate(
         searchQuery,
         updateQuery, 
         { useFindAndModify: false });
+
+    // ====================== SORT MESSAGES BY DATE ======================
+    await User.updateOne(
+        { _id },
+        { $push: { messages: { $each: [], $sort: { date: -1 } } } }
+    );
 }
 
 module.exports = { 

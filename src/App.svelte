@@ -5,6 +5,7 @@
 	import { goto } from '@sveltech/routify';
 	import { store } from './stores/store.js';
 	import { getAccessToken, getLoggedUserData } from './helpers/auth';
+	import Modal from './components/Modals/Modal.svelte';
 	
 	const checkAuth = async() => {
 		const token = localStorage.getItem('refreshToken');
@@ -24,7 +25,9 @@
 	<p>...waiting</p>
 {:then data}
 	<Notifications>
-		<Router {routes} />
+		<Modal>
+			<Router {routes} />
+		</Modal>
 	</Notifications>
 {:catch error}
 	<p style="color: red">{error.message}</p>
