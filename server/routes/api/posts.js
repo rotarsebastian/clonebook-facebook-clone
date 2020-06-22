@@ -39,8 +39,8 @@ router.get('/subscribe', async(req, res) => {
 
 // ====================== GET POSTS FEED ======================
 router.get('/', isAuthenticated, async(req, res) => {
-    // const posts = await Post.find({ authorId: { $ne: req.user._id } }).sort('-date');
-    const posts = await Post.find({}).sort('-date');
+    const posts = await Post.find({ authorId: { $ne: req.user._id } }).sort('-date');
+    // const posts = await Post.find({}).sort('-date');
     return res.send(posts);
 });
 

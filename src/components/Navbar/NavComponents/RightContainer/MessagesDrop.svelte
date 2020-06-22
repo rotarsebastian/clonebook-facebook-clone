@@ -5,6 +5,7 @@
 
     export let hideDrop = undefined;
 
+    // ====================== OPEN USER CHAT ======================
     const openChat = id => {
         const friend = $store.user.friends.find(friend => friend.friend_id === id);
         if(friend) {
@@ -28,6 +29,8 @@
                     {#each $store.user.messages as message}
                         <div class="item" on:click={() => openChat(message.from)} class:notSeen={!message.seen}>
                             <ProfileImg size={2.25} img={message.from_user_image} slideShowImgs={[ message.from_user_image ]} />
+
+                            <!-- USER NAME AND LAST MESSAGE -->
                             <div class="profile">
                                 <div class="data">
                                     <div class="name">{message.from_user_first_name}</div>
@@ -37,6 +40,7 @@
                                     <span></span>
                                 {/if}
                             </div>
+
                         </div>
                     {/each}
             {/if}

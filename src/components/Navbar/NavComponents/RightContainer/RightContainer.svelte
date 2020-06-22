@@ -1,16 +1,25 @@
 <script>
     import ProfileImg from './../../../MiniComponents/ProfileImage.svelte';
     import IconUser from '../../../MiniComponents/IconUser.svelte';
+    import Dialog from '../../../Modals/Dialog.svelte';
     import { store } from './../../../../stores/store.js';
     import { goto } from '@sveltech/routify';
     import ArrowDrop from './ArrowDrop.svelte';
     import MessagesDrop from './MessagesDrop.svelte';
     import NotificationsDrop from './NotificationsDrop.svelte';
     import { getUserNotifications } from './../../../../helpers/notifications.js';
-    import { markConversationAsSeen } from './../../../../helpers/conversations.js';    
+    import { validateForm } from './../../../../helpers/validation';
+    import { markConversationAsSeen } from './../../../../helpers/conversations.js'; 
+    import { addPost } from './../../../../helpers/posts.js';   
     import io from 'socket.io-client';
     import { onMount, onDestroy } from 'svelte';
+    import { getContext } from 'svelte';
+    import { getNotificationsContext } from 'svelte-notifications';
 
+    const { addNotification } = getNotificationsContext();
+    const { open } = getContext('simple-modal');
+
+    // ====================== LIFECYCLE METHODS ======================
     onMount(() => initSocket());
 
 	onDestroy(() => {
@@ -25,6 +34,15 @@
 
     // ====================== DYNAMIC VARIABLES ======================
     let eventSource;
+
+    const showNotification = (type, text) => {
+        return addNotification({
+            text,
+            position: 'bottom-right',
+            type,
+            removeAfter: 3000,
+        });
+    }
 
     // ====================== INIT MESSAGES SOCKET ======================
     const initSocket = () => {
@@ -102,7 +120,7 @@
                                 if(updatedNotif.type === 'accept') {
                                     const newFriend = { 
                                         name: `${updatedNotif.first_name} ${updatedNotif.last_name}`,  
-                                        image: updatedNotif.images[0],  
+                                        image: updatedNotif.image,  
                                         friend_id: updatedNotif.from
                                     };
                                     $store.user.friends = [ ...$store.user.friends, newFriend ];
@@ -110,6 +128,7 @@
                             } 
                         } 
                     } 
+
                     // ====================== HANDLE DELETED NOTIFICATION ======================
                     else if(updatedNotif.hasOwnProperty('deletedNotifId')) {
                         const filteredNotif = $store.notifications.filter(notif => notif._id !== updatedNotif.deletedNotifId);
@@ -154,11 +173,55 @@
             dropdowns.showNotifDrop = !dropdowns.showNotifDrop;
             closeOtherDropdowns('showNotifDrop');
         }
-        else if(menu === 'create minimize') {
-            dropdowns.showCreateDrop = !dropdowns.showCreateDrop;
-            closeOtherDropdowns('showCreateDrop');
-        }
+        else if(menu === 'create minimize') showDialog();
     }
+
+    // ====================== CREATE NEW POST ======================
+    const onOkay = async(text, files) => {
+
+        // ====================== VALIDATION ======================
+        const newPostData = [ 
+            { type: 'author', val: `${$store.user.first_name} ${$store.user.last_name}` }, 
+            { type: 'authorImg', val: $store.user.images[0] },
+            { type: 'text', val: text }
+        ];
+
+        const isFormValid = validateForm(newPostData);
+        if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
+
+        // ====================== CONSTRUCT REQUEST DATA ======================
+        const requestData = new FormData();
+
+        requestData.append('data', JSON.stringify(newPostData));
+        files.map(file => requestData.append('image', file, file.name));
+
+        // ====================== REQUEST ======================
+        const res = await addPost(requestData, $store.accessToken);
+
+        // ====================== RESPONSE ======================
+        if(res.status === 1) return showNotification('success', 'Post created successfully!');
+    }
+
+    // ====================== OPEN CREATE POST DIALOG ======================
+    const showDialog = () => {
+
+        const dialogObj = {
+            elem: 'post',
+            message: 'create',
+            hasForm: true,
+            onOkay
+        };
+
+		open(
+			Dialog,
+			dialogObj,
+			{
+				closeButton: true,
+                closeOnEsc: true,
+                closeOnOuterClick: true,
+			}
+        );
+	};
 
     // ====================== CLOSE ALL OTHER DROPDOWNS ON OPEN DROP DOWN ======================
     const closeOtherDropdowns = exception => {
@@ -183,16 +246,21 @@
         else if(dropdowns.showCreateDrop === true) dropdowns.showCreateDrop = false;
     });
 
+    // ====================== GET INITIAL DATA ======================
     getUserNotif();
 </script>
 
 <!-- ######################################## -->
 
 <div class="rightContainer">
+
+    <!-- PERSONAL PROFILE -->
     <div class="profileContainer" on:click={() => $goto(`/profile?id=${$store.user._id}`)}>
         <ProfileImg size={1.75} img={$store.user.images[0]} slideShowImgs={$store.user.images[0]} />
         <div class="profileName">{$store.user.first_name}</div>
     </div>
+
+    <!-- RIGHT SIDE MENU ITEMS -->
     <div class="iconsContainer">
         {#each iconsContainer as elem}
             {#if !elem.includes(' ')}
@@ -213,6 +281,7 @@
             {/if}
         {/each}
 
+        <!-- SHOW DROPDOWNS -->
         {#if dropdowns.showArrowDrop}
             <ArrowDrop hideDrop={hideDrop} />
             {:else if dropdowns.showMessagesDrop}
@@ -224,7 +293,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     .iconAreaContainer {
         display: flex;

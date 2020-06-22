@@ -74,10 +74,10 @@ router.get('/sendFriendRequest', isAuthenticated, async(req, res) => {
 
         // ====================== ADD FRIEND REQ ======================
         const userFrom = await User.findById(_id).select('first_name last_name images');
-        const { _id: from, ...rest } = userFrom._doc;
+        const { _id: from, images, ...rest } = userFrom._doc;
         
         const newFriendSentReq = { _id: new ObjectId(), to: id, type: 'sentreq' };
-        const newFriendReq = { _id: new ObjectId(), ...rest, from: _id, to: id, type: 'request' };
+        const newFriendReq = { _id: new ObjectId(), ...rest, image: images[0], from: _id, to: id, type: 'request' };
 
         await User.findOneAndUpdate({ _id }, { $addToSet: { requests: newFriendSentReq  } }, { upsert: true, useFindAndModify: false });
         await User.findOneAndUpdate({ _id: id }, { $addToSet: { requests: newFriendReq  } }, { upsert: true, useFindAndModify: false });
@@ -103,13 +103,13 @@ router.post('/answerFriendReq', isAuthenticated, async(req, res) => {
         // ====================== GET BODY ======================
         const { answer, ...rest } = req.body;
 
-        const newFriend = { _id: new ObjectId(), friend_id: rest.from, name: `${rest.first_name} ${rest.last_name}`, image: rest.images[0] };
+        const newFriend = { _id: new ObjectId(), friend_id: rest.from, name: `${rest.first_name} ${rest.last_name}`, image: rest.image };
         const user = await User.findById(_id).select('first_name last_name images');
         
-        const { _id: from, ...rest2 } = user._doc;
-        const newFriendBack = { _id: new ObjectId(), friend_id: _id, name: `${rest2.first_name} ${rest2.last_name}`, image: rest2.images[0] };
+        const { _id: from, images, ...rest2 } = user._doc;
+        const newFriendBack = { _id: new ObjectId(), friend_id: _id, name: `${rest2.first_name} ${rest2.last_name}`, image: images[0] };
 
-        const acceptFriendReq = { _id: new ObjectId(), ...rest2, from: _id, to: rest.from, type: 'accept' };
+        const acceptFriendReq = { _id: new ObjectId(), ...rest2, image: images[0], from: _id, to: rest.from, type: 'accept' };
 
         // ====================== REMOVE SENT REQUEST FROM SENDER ======================
         await User.findOneAndUpdate(

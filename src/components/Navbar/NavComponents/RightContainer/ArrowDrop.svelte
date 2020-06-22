@@ -6,6 +6,7 @@
 
     export let hideDrop = undefined;
 
+    // ====================== HANDLE LOGOUT USER OPERATIONS ======================
     const handleLogout = async() => {
         const response = await logout(localStorage.getItem('refreshToken'));
         if(response.status === 1) {
@@ -18,6 +19,7 @@
         }
     }
 
+    // ====================== REDIRECT TO USER PROFILE ======================
     const redirectToProfile = () => {
         hideDrop('arrowDrop');
         $goto(`/profile?id=${$store.user._id}`);
@@ -30,6 +32,8 @@
 <div id="dropdownCaret" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
     <div class="itemsContainer">
         <div class="items">
+
+            <!-- GO TO USER PROFILE -->
             <div class="item" on:click={redirectToProfile}>
                 <ProfileImg size={3.25} img={$store.user.images[0]} slideShowImgs={$store.user.images[0]} />
                 <div class="profile">
@@ -38,10 +42,12 @@
                 </div>
             </div>
 
+            <!-- LOGOUT USER -->
             <div class="item" on:click={handleLogout}>
                 <span class="icon"></span>
                 <div class="logout">Log Out</div>
             </div>
+            
         </div>
     </div>
 </div>

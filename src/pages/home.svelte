@@ -75,7 +75,7 @@
 		<div class="contentContainer">
 			<div class="groupsContainer">
 				<div class="hidden"></div>
-				<div class="groups">Groups</div>
+				<div class="groups"></div>
 			</div>
 			<div class="postsContainer">
 				<Posts />

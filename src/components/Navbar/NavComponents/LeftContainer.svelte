@@ -6,10 +6,12 @@
     import { goto } from '@sveltech/routify';
     import { onMount } from 'svelte';
 
+    // ====================== VARIABLES ======================
     let ajUsers = [];
     let showingResults = false;
     let searchInput;
 
+    // ====================== FETCH SEARCH DATA ======================
     const getSearchData = async() => {
         const { value: search } = searchInput;
         if(search.length > 1) {
@@ -20,11 +22,14 @@
         } else ajUsers = [];
     }
 
+    // ====================== CLICK ON SEARCH BAR ======================
     const handleClickSearch = e => {
         e.stopPropagation();
+        searchInput.focus();
         showingResults = true;
     }
 
+    // ====================== REDIRECT TO USER PROFILE ======================
     const handleRedirect = id => {
         $goto(`/profile?id=${id}`);
         // $goto('/profile', { id });
@@ -33,6 +38,7 @@
         searchInput.value = '';
     }
 
+    // ====================== HANDLE ON CLICK OUTSIDE ======================
     window.addEventListener('click', () => {
         if(showingResults === true) showingResults = false;
     })
@@ -41,8 +47,12 @@
 <!-- ######################################## -->
 
 <div class="leftContainer">
+    <!-- LOGO -->
     <a href={$url('./home')}><img src="./assets/imgs/facebook.svg" class="logo" alt="logo" /></a>
+
+    <!-- SEARCH CONTAINER -->
     <div id="searchContainer">
+
         <form>
             <div class="inputContainer" on:click={handleClickSearch}>
                 <img class="searchIcon" class:open={showingResults} on:click={handleClickSearch} src="https://static.xx.fbcdn.net/rsrc.php/v3/yt/r/LZP5SAAuvu9.png" alt="logo" height="16" width="16" />
@@ -55,13 +65,19 @@
                 />
             </div>
         </form>
+
+        <!-- IF RESULTS - SHOW THEM -->
         {#if showingResults}
             <div id="searchResults" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
+
                 <div class="backArrowContainer" on:click={() => showingResults = false }>
                     <span class="backArrow"></span>
                 </div>
+
                 <div class="resultsContainer">
-                    <div class="recentSearchContainer">{ajUsers.length > 0 ? 'Users' : ''}</div>
+                    <div class="resultsTitle">{ajUsers.length > 0 ? 'Users' : ''}</div>
+                    
+                    <!-- RESULTS LIST -->
                     <div class="results">
                         {#each ajUsers as ajUser}
                             <div class="searchResultUser" on:click={() => handleRedirect(ajUser._id)}>
@@ -73,6 +89,7 @@
                         {/each}
                     </div>
                 </div>
+
             </div>
         {/if}
     </div>
@@ -183,7 +200,7 @@
         margin-left: .85rem;
     }
 
-    .leftContainer #searchContainer #searchResults .resultsContainer .recentSearchContainer {
+    .leftContainer #searchContainer #searchResults .resultsContainer .resultsTitle {
         margin-left: .75rem;
         margin-top: 1.5rem;
         color: rgb(5, 5, 5);

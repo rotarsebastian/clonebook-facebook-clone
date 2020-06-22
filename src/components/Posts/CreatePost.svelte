@@ -12,7 +12,7 @@
         createPost(text, files);
 	}
 
-    const showDialog = dialogFor => {
+    const showDialog = () => {
 
         const dialogObj = {
             elem: 'post',

@@ -4,24 +4,29 @@
     import { goto } from '@sveltech/routify';
     import { answerFriendReq, deleteNotification } from './../../../../helpers/notifications.js';
 
+    // ====================== RESPOND TO A FRIEND REQUEST ======================
     const respondRequest = async(notification, answer) => {
-        if(answer === 'yes') await answerFriendReq(notification, 1, $store.accessToken);
-        else await answerFriendReq(notification, 0, $store.accessToken);
+        let response;
 
-        const newFriend = { 
-            name: `${notification.first_name} ${notification.last_name}`,  
-            image: notification.images[0],  
-            friend_id: notification.from
-        };
-        $store.user.friends = [ ...$store.user.friends, newFriend ];
-}
+        // ====================== HANDLE CONFIRM OR DELETE ANSWER ======================
+        if(answer === 'yes') response = await answerFriendReq(notification, 1, $store.accessToken);
+        else response = await answerFriendReq(notification, 0, $store.accessToken);
 
-    const handleDeleteNotification = async(id) => {
-        const res = await deleteNotification(id, $store.accessToken);
-        console.log(res);
+        // ====================== ADD FRIEND IF YOU ACCEPTED ======================
+        if(response.status === 1 && answer === 'yes') {
+            const newFriend = { 
+                name: `${notification.first_name} ${notification.last_name}`,  
+                image: notification.image,  
+                friend_id: notification.from
+            };
+            $store.user.friends = [ ...$store.user.friends, newFriend ];
+        }
+
     }
 
-    // console.log($store.notifications)
+    // ====================== DELETE NOTIFICATION ======================
+    const handleDeleteNotification = id => deleteNotification(id, $store.accessToken);
+
 </script>
 
 <!-- ######################################## -->
@@ -29,17 +34,22 @@
 <div id="notifDrop" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
     <div class="itemsContainer">
         <div class="items">
+
+            <!-- SHOW FRIEND REQUEST OR ACCEPTED FRIEND REQUESTS -->
             {#if $store.notifications.filter(notif => notif.type !== 'sentreq').length > 0}
+
                 {#each $store.notifications as notification}
+
                     {#if notification.type !== 'sentreq'}
                         <div class="item">
-                            {#if notification.type !== 'request'}
-                                <span class="trash" on:click={() => handleDeleteNotification(notification._id)}></span>
-                            {/if}
-                            <ProfileImg size={2} />
+
+                            <ProfileImg size={2} img={notification.image} slideShowImgs={[ notification.image ]} />
+                            <!-- NOTIFICATION FROM USER -->
                             <div class="profile">
                                 <div class="name">{notification.first_name} {notification.last_name}</div>
                                 <div class="info">{notification.type === 'request' ? 'Friend request' : 'Accepted your friend request'}</div>
+
+                                <!-- FRIEND REQUEST NOTIFICATION BUTTONS -->
                                 {#if notification.type === 'request'}
                                     <div class="buttons">
                                         <button on:click={() => respondRequest(notification, 'yes')}>Confirm</button>
@@ -47,9 +57,16 @@
                                     </div> 
                                 {/if}
                             </div>
+
+                            <!-- DELETE ICON ACCEPTED REQUESTS -->
+                            {#if notification.type !== 'request'}
+                                <span class="trash" on:click={() => handleDeleteNotification(notification._id)}></span>
+                            {/if}
                         </div>
                     {/if}
+
                 {/each}
+
                 {:else}
                 <div>No new notifications</div>
             {/if}
