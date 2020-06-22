@@ -2,17 +2,21 @@
     import IconUser from '../MiniComponents/IconUser.svelte';
     import ProfileImg from './../MiniComponents/ProfileImage.svelte';
     import { store } from '../../stores/store.js';    
+    import { parseDateMessages } from '../../helpers/dateParser.js';    
     import { getConversation, markConversationAsSeen } from '../../helpers/conversations.js';    
 
+    // ====================== DYNAMIC VALUES ======================
     let messagesBox, messageInputValue = '', loaded = 0, timeout = undefined, typing = false;
+    let conversation = { messages: [] }, currentChatPerson = undefined, inputRef, messageHover = undefined;
 
-    let conversation = { messages: [] }, currentChatPerson = undefined, inputRef;
+    // ====================== HANDLE GETTING NEW MESSAGES ======================
     $: conversation = $store.assignNewMessage 
         ? 
         { ...conversation, messages: [ ...conversation.messages, { ...$store.assignNewMessage } ] } 
         : conversation, 
         updateConversation();
 
+    // ====================== GET PAST MESSAGES ======================
     const getMessages = async() => {
         updateNewMessagesLength();
         const result = await getConversation($store.chatUserStore.friend_id, 0, $store.accessToken);
@@ -31,15 +35,18 @@
         }
     }
 
+    // ====================== UPDATE NEW MESSAGES LENGTH WHEN OPEN A CHAT ======================
     const updateNewMessagesLength = () => {
         const friendId = $store.chatUserStore.friend_id;
         const newMessageIndex = $store.user.messages.findIndex(msg => msg.from === friendId);
+
         if(newMessageIndex !== -1) {
             $store.user.messages[newMessageIndex].seen = true;
             markConversationAsSeen($store.user.messages[newMessageIndex].from, $store.accessToken);
         }
     }
 
+    // ====================== LOAD MORE MESSAGES WHEN SCROLLING UP ======================
     const showMoreMessages = async() => {
         const result = await getConversation($store.chatUserStore.friend_id, loaded + 20, $store.accessToken);
         if(result.data.messages[0].date !== conversation.messages[0].date) {
@@ -53,6 +60,7 @@
         }
     }   
 
+    // ====================== SCROLL DOWN WHEN YOU GET A MESSAGE ======================
     const updateConversation = () => {
         setTimeout(() => { 
             if(messagesBox && $store.assignNewMessage !== null) messagesBox.scrollTop = messagesBox.scrollHeight;
@@ -60,16 +68,23 @@
         }, 100);
     }
 
+    // ====================== SEND MESSAGE ======================
     const handleSendMessage = async() => {
         if(messageInputValue.length > 0) {
+
+            // ====================== NEW MESSAGE ======================
             const newMessage = { 
                 from: $store.user._id, 
                 to: $store.chatUserStore.friend_id, 
                 text: messageInputValue.trim(),
                 from_user_first_name: $store.user.first_name,
-                from_user_image: $store.user.images[0] 
+                from_user_image: $store.user.images.length > 0 ? $store.user.images[0] : null
             };
+            
+            // ====================== EMIT SEND MESSAGE EVENT ======================
             $store.socket.emit('sendMessage', newMessage );
+
+            // ====================== UPDATE YOUR MESSAGES & CLEAR INPUT & RE-ADJUST TEXTAREA SIZE & SCROLL DOWN TO MESSAGE ======================
             conversation.messages = [ ...conversation.messages, { from: $store.user._id, text: messageInputValue.trim(), date: new Date() } ];
             messageInputValue = '';
             inputRef.style.height = '2rem';
@@ -77,6 +92,7 @@
         }
     }
 
+    // ====================== HANDLE USER TYPING & AUTOSIZE TEXTAREA ======================
     const handleTyping = e => {
         // ====================== AUTO SIZE TEXTAREA ======================
         inputRef.style.height = ''; 
@@ -92,6 +108,7 @@
         } 
     }
 
+    // ====================== SEND MESSAGE ON ENTER KEY ======================
     const handleKeyPress = e => {
         if (e.keyCode === 13 && e.shiftKey === false) {
             e.preventDefault();
@@ -101,6 +118,7 @@
         }
     }
 
+    // ====================== EMIT EVENT WHEN USER STOPS TYPING ======================
     const typingTimeout = () => {
         typing = false;
         $store.socket.emit('isTyping', { from: $store.user._id, to: $store.chatUserStore.friend_id, typing: false });
@@ -116,6 +134,8 @@
 {:then data}
     {#if $store.chatUserStore}
         <div class="chatContainer">
+
+            <!-- CHAT TOP BAR CONTAINER -->
             <div class="topBar">
                 <IconUser user={$store.chatUserStore} click={true} />
                 <div class="closeChatContainer" on:click={() => { $store.chatUserStore = null; $store.assignNewMessage = null; }}>
@@ -123,9 +143,11 @@
                 </div>
             </div>
 
+            <!-- ALL MESSAGES CONTAINER -->
             <div class="chatMessagesContainer" bind:this={messagesBox}>
                 <div class="chatMessages"> 
                     {#if conversation.messages.length > 0}
+
                         {#each conversation.messages as message, index}
                             <div 
                                 id={message.date}
@@ -135,7 +157,7 @@
                                 class:round={conversation.messages[index - 1] && conversation.messages[index - 1].from === message.from}
                                 class:roundBottom={(conversation.messages[index + 1] && conversation.messages[index + 1].from !== message.from) || conversation.messages.indexOf(message) === conversation.messages.length - 1}
                             >
-                                <div>
+                                <div class="textDateContainer">
                                     {#if message.from !== $store.user._id && (conversation.messages[index + 1] && conversation.messages[index + 1].from !== message.from || conversation.messages.indexOf(message) === conversation.messages.length - 1)}
                                         <span class="profileImg">
                                             <ProfileImg 
@@ -145,11 +167,20 @@
                                             />
                                         </span>
                                     {/if}
-                                    <!-- <p class={"meta"}><span>{message.time}</span></p> -->
-                                    <span class={"text"}>{message.text}</span>
+                                    {#if messageHover === message.date}
+                                        <p class="date"><span>{parseDateMessages(message.date)}</span></p>
+                                    {/if}
+                                    <span 
+                                        class="text" 
+                                        on:mouseenter={() => messageHover = message.date}
+                                        on:mouseleave={() => messageHover = undefined}
+                                    >
+                                        {message.text}
+                                    </span>
                                 </div>
                             </div>
                         {/each}
+
                         {:else}
                         <div class="noMessages">Start a new conversation with {$store.chatUserStore.name.split(' ')[0]}</div>
                     {/if}
@@ -182,6 +213,26 @@
 <!-- ######################################## -->
 
 <style>
+    .textDateContainer {
+        display: flex;
+        align-items: center;
+    }
+
+    .textDateContainer .date {
+        font-size: .75rem;
+        margin-right: .5rem;
+        color: var(--grey);
+    }
+
+    .message.left .textDateContainer {
+        flex-direction: row-reverse;
+    }
+
+    .message.left .textDateContainer .date {
+        margin-right: 0;
+        margin-left: .5rem;
+    }
+    
     .formContainer {
         position: absolute;
         bottom: 0;

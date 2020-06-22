@@ -1,4 +1,3 @@
-require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { saveMessageIntoDB, createMessageNotification } = require(__dirname + '/messages');
 const User = require(__dirname + '/../models/User');
@@ -6,6 +5,7 @@ const User = require(__dirname + '/../models/User');
 global.currentlyConnectedUsers = [];
 global.disconnectedUsersTimes = [];
 
+// ====================== GET USER BASED ON ITS SOCKET ID ======================
 const getUserSocketId = userId => {
     const user = currentlyConnectedUsers.find(user => user.userId === userId);
     if(!user) return false;
@@ -61,8 +61,10 @@ module.exports = socket => {
 
     // ====================== USER DISCONECTED ======================
     socket.on('disconnect', async() => {
-        const disconnectedUser = currentlyConnectedUsers.find(user => user.socketId === socket.id);
-        currentlyConnectedUsers = currentlyConnectedUsers.filter(user => user.socketId !== socket.id);  
+        const socketId = socket.id;
+        const disconnectedUser = currentlyConnectedUsers.find(user => user.socketId === socketId);
+        
+        currentlyConnectedUsers = currentlyConnectedUsers.filter(user => user.socketId !== socketId);  
         if(disconnectedUser) disconnectedUsersTimes.push({ id: disconnectedUser.userId, time: new Date() });
     });
 }

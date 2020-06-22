@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// ====================== NOT USED NOW - CAN BE INTEGRATED FOR POSTS ======================
 const CommentSchema = new mongoose.Schema({
     author: {
         type: String,
@@ -10,8 +11,7 @@ const CommentSchema = new mongoose.Schema({
         required: true
     },
     authorImg: {
-        type: String,
-        required: true
+        type: String
     },
     text: {
         type: String,

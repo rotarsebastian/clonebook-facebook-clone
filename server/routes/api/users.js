@@ -1,5 +1,4 @@
 // ====================== IMPORTS ======================
-require('dotenv').config();
 const router = require('express').Router();
 const User = require(__dirname + '/../../models/User');
 const Conversation = require(__dirname + '/../../models/Conversation');
@@ -15,16 +14,13 @@ const saltRounds = 10;
 const { uuid, isUuid } = require('uuidv4');
 const nodemailer = require('nodemailer');
 const moment = require('moment');
-const xoauth2 = require('xoauth2');
-const { gmail } = require(__dirname + '/../../config/gmailConfig');
-const { clientEndpoint } = require(__dirname + '/../../config/otherConfigs');
-const jwt = require('jsonwebtoken');
+const xoauth2 = require('xoauth2');const jwt = require('jsonwebtoken');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { uploadProfile, removeImages } = require(__dirname + '/../../helpers/handleImages');
 
 const multipleUpload = uploadProfile.array('image', 10); // MAXIMUM 10 IMAGES AT ONCE
 
-const client = process.env.CLIENT || clientEndpoint;
+const client = process.env.CLIENT_ENDPOINT;
 
 // ====================== SETUP MAILER ======================
 const transportObject = {
@@ -33,10 +29,10 @@ const transportObject = {
     secure: true,
     auth: {
         type: 'OAuth2',
-        user: process.env.MAIL_SENDER || gmail.senderEmail,
-        clientId: process.env.MAIL_CLIENT || gmail.client_id,
-        clientSecret: process.env.MAIL_SECRET || gmail.client_secret,
-        refreshToken: process.env.MAIL_REFRESH || gmail.refresh_token,
+        user: process.env.MAIL_SENDER,
+        clientId: process.env.MAIL_CLIENT,
+        clientSecret: process.env.MAIL_SECRET,
+        refreshToken: process.env.MAIL_REFRESH
     }
 }
 let transporter = nodemailer.createTransport(transportObject);

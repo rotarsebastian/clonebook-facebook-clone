@@ -1,8 +1,5 @@
-const { gmail } = require(__dirname + '/../config/gmailConfig');
-const { usersEndpoint } = require(__dirname + '/../config/otherConfigs');
-
 const rawEmail = {
-    from: `Clonebook <${process.env.MAIL_SENDER || gmail.senderEmail}>`,
+    from: `Clonebook <${process.env.MAIL_SENDER}>`,
     to: 'receiver.email@gmail.com',
     subject: '',
     text: ''
@@ -10,7 +7,7 @@ const rawEmail = {
 
 const constructActivationEmail = user => {
     const { email, activate_or_reset_pass_key, first_name } = user;
-    const path = `${process.env.SERVER_ENDPOINT || usersEndpoint}/activate?key=${activate_or_reset_pass_key}`;
+    const path = `${process.env.USERS_ENDPOINT}/activate?key=${activate_or_reset_pass_key}`;
     let newEmail = { ...rawEmail };
     newEmail.to = email;
     newEmail.subject = 'Welcome to Clonebook! - Activate your account';
@@ -23,7 +20,7 @@ const constructActivationEmail = user => {
 
 const constructForgotCredentialsEmail = (user, key) => {
     const { email, first_name } = user;
-    const path = `${process.env.SERVER_ENDPOINT || usersEndpoint}/reset?key=${key}`;
+    const path = `${process.env.USERS_ENDPOINT}/reset?key=${key}`;
     let newEmail = { ...rawEmail };
     newEmail.to = email;
     newEmail.subject = 'Clonebook - Recover your account credentials';

@@ -1,6 +1,7 @@
 const Conversation = require(__dirname + '/../models/Conversation');
 const User = require(__dirname + '/../models/User');
 
+// ====================== ADD MESSAGE TO DB ======================
 const saveMessageIntoDB = async(from, to, text) => {
     await Conversation.findOneAndUpdate(
         { $or: [ { user1: from, user2: to }, { user1: to, user2: from } ] }, 
@@ -9,9 +10,11 @@ const saveMessageIntoDB = async(from, to, text) => {
     );
 }
 
+// ====================== CREATE / UPDATE USER MESSAGE NOTIFICATION ======================
 const createMessageNotification = async(message, _id) => {
     const exists = await User.findOne({ _id, messages: { $elemMatch: { from: message.from }}});
 
+    // ====================== CHECK IF CONVERSATION EXISTS ======================
     const messageNotif = exists ? { 
         'messages.$.from': message.from, 
         'messages.$.text': message.text, 

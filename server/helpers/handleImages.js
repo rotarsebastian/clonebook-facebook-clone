@@ -1,17 +1,18 @@
 const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const { AWS_Access_Key, AWS_Secret_Key } = require(__dirname + '/../config/otherConfigs');
 const { uuid } = require('uuidv4');
 
+// ====================== CONFIG AWS ======================
 aws.config.update({
-    secretAccessKey: process.env.SECRET_AWS || AWS_Secret_Key,
-    accessKeyId: process.env.ACCESS_AWS || AWS_Access_Key,
+    secretAccessKey: process.env.SECRET_AWS,
+    accessKeyId: process.env.ACCESS_AWS,
     region: 'eu-north-1'
 });
 
 const s3 = new aws.S3();
 
+// ====================== FILTER IMAGE TYPES ======================
 const fileFilter = (req, file, cb) => {
     if (file.mimetype.toLowerCase() === 'image/jpeg' || 
         file.mimetype.toLowerCase() === 'image/png' || 
@@ -23,6 +24,7 @@ const fileFilter = (req, file, cb) => {
     }
 }
  
+// ====================== UPLOAD POSTS IMAGES ======================
 const upload = multer({
     fileFilter,
     storage: multerS3({
@@ -38,6 +40,7 @@ const upload = multer({
     })
 });
 
+// ====================== UPLOAD PROFILE IMAGES ======================
 const uploadProfile = multer({
     fileFilter,
     storage: multerS3({
@@ -53,6 +56,7 @@ const uploadProfile = multer({
     })
 });
 
+// ====================== REMOVE S3 IMAGES ======================
 const removeImages = async(removedImages, from) => {
     if(removedImages && removedImages.length === 0) return { status: 1, message: 'No images to remove!' };
     

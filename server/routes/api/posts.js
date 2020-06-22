@@ -169,8 +169,9 @@ router.patch('/:id/:type/like', isAuthenticated, async(req, res) => {
         if(!dbRes) return res.json({ status: 0, message: 'Post does not exist!'});
 
         const filteredLikes = dbRes._doc.likes.filter(like => like !== user_id);
+        const addNewLike = [ ...new Set([ ...dbRes._doc.likes, user_id ]) ] ;
 
-        touchedPost = type == 1 ? { ...dbRes._doc, likes: [ ...dbRes._doc.likes, user_id ] } : { ...dbRes._doc, likes: filteredLikes };
+        touchedPost = type == 1 ? { ...dbRes._doc, likes: addNewLike } : { ...dbRes._doc, likes: filteredLikes };
         globalPosts++;
 
         // ====================== SUCCESS ======================

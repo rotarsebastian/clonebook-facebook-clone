@@ -50,9 +50,11 @@
 {#if $store.user.hasOwnProperty('friends') && $store.user.friends.length >= 0}
     <div id="activeChatList">
         <div id="title">Contacts</div>
+        
         {#each $store.user.friends as contact}
             <div class="activeUser" on:click={() => changeChatContainer(contact)} >
                 <IconUser user={contact} />
+
                 {#if $store.onlineFriends.findIndex(user => user === contact.friend_id) > -1}
                     <span class="online"></span>
                     {:else if $store.disconnectedUsersTimes.findIndex(user => user.id === contact.friend_id) > -1}

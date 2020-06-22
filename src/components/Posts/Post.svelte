@@ -37,9 +37,7 @@
     let seeComments, commInput, showDropdown = false, editDelete;
 
     const handleLike = async() => {
-        // post.likes.indexOf($store.user._id) === -1 
-        // ? post.likes = [ ...post.likes, $store.user._id ] 
-        // : post.likes = post.likes.filter(post => post !== $store.user._id);
+        // ====================== CHECK IF IT IS LIKE OR UNLIKE ======================
         const likeType = post.likes.indexOf($store.user._id) === -1 ? 1 : 0;
         const result = likeType === 1 ? await likePost(post._id, 1, $store.accessToken) : await likePost(post._id, 0, $store.accessToken);
     }
@@ -48,7 +46,7 @@
         // ====================== VALIDATION ======================
         const commentData = [ 
             { type: 'author', val: `${$store.user.first_name} ${$store.user.last_name}` }, 
-            { type: 'authorImg', val: $store.user.images[0] }, 
+            { type: 'authorImg', val: $store.user.images.length > 0 ? $store.user.images[0] : null }, 
             { type: 'text', val: e.target.value }
         ];
 

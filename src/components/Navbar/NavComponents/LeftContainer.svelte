@@ -38,6 +38,12 @@
         searchInput.value = '';
     }
 
+    // ====================== REMOVE SERACH REASULT ======================
+    const removeResult = (e, userToRemove) => {
+        e.stopPropagation();
+        ajUsers = ajUsers.filter(user => user !== userToRemove);
+    }
+
     // ====================== HANDLE ON CLICK OUTSIDE ======================
     window.addEventListener('click', () => {
         if(showingResults === true) showingResults = false;
@@ -83,7 +89,7 @@
                             <div class="searchResultUser" on:click={() => handleRedirect(ajUser._id)}>
                                 <IconUser user={{ name: `${ajUser.first_name} ${ajUser.last_name}`, image: ajUser.images[0] }} />
                                 <div class="deleteSearchContainer">
-                                    <span class="deleteSearchButton" on:click={() => ajUsers = ajUsers.filter(user => user !== ajUser)}></span>
+                                    <span class="deleteSearchButton" on:click={e => removeResult(e, ajUser)}></span>
                                 </div>
                             </div>
                         {/each}

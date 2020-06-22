@@ -23,7 +23,6 @@
 
 	$: buttonDisabled = $store.selectedProfileImage ? false : true
 
-	let profile_image = $store.user.images[0];
 	let oldImages = $store.user.images;
 	let newImages = [];
 
@@ -85,7 +84,7 @@
 
 <Modal>
 	<div class="contentContainer">
-		<ProfileImage size={15} img={$store.user.images && $store.user.images.length > 0 ? $store.user.images[0] : undefined} />
+		<ProfileImage size={15} img={$store.user.images[0]} />
 		<div class="userFullName">{$store.user.first_name} {$store.user.last_name}</div>
 
 		<div class="inputContainer">

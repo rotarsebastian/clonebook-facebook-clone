@@ -1,6 +1,6 @@
-require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
+// ====================== AUTHENTICATION MIDDLEWARE ======================
 const isAuthenticated = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -14,6 +14,7 @@ const isAuthenticated = (req, res, next) => {
     });
 }
 
+// ====================== GENERATE A NEW ACCESS TOKEN BASED ON REFRESH TOKEN ======================
 const generateAccessToken = user => {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' }); 
 }
