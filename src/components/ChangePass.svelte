@@ -1,19 +1,20 @@
 <script>
     import { validateForm } from './../helpers/validation';
-    import { getNotificationsContext } from 'svelte-notifications';
+    import { showNotification } from './../helpers/actionNotifications';
     import Icon from 'svelte-awesome';
     import { store } from './../stores/store.js';
     import { spinner } from 'svelte-awesome/icons';
-    import { changePassword } from './../helpers/auth';
+    import { changePassword } from './../helpers/user';
     import { goto } from '@sveltech/routify';
 
-    const { addNotification } = getNotificationsContext();
-
+    // ====================== PROPS ======================
     export let goBack;
-    
+
+    // ====================== DYNAMIC VARIABLES ======================
     let newPassword = '', repeatNewPassword = '', buttonLoading = false;;
 
     const handleChangePass = async() => {
+
         // ====================== VALIDATION ======================
         const changePassData = [ 
             { type: 'password', val: newPassword }, 
@@ -26,6 +27,7 @@
         if($store.user.changeKey) changePassData.push({ key: $store.user.changeKey });
             else return showNotification('danger', 'Unauthorized!');
 
+        // ====================== REQUEST ======================
         buttonLoading = true;
         const res = await changePassword(changePassData);
         $store.user.changeKey = undefined;
@@ -38,14 +40,6 @@
         } else return showNotification('danger', res.message);
     }
 
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
 </script>
 
 <div class="changePassContainer">

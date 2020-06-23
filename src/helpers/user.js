@@ -99,25 +99,6 @@ export const changePassword = async(changePassData) => {
     }
 };
 
-export const deleteUser = async() => {
-    try {
-        const options = {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        };
-        const response = await fetch(usersEndpoint, options);
-        const data = await response.json();
-        return data;
-    }
-    catch(err) {
-        return { status: 0, message: 'Can not connect to the server', code: 999 };
-    }
-};
-
 export const getSpecificUser = async(id, token) => {
     try {
         const options = {
@@ -242,6 +223,26 @@ export const getUsersByIDs = async(users_ids, token) => {
         body: JSON.stringify(users_ids)
       };
       const response = await fetch(usersEndpoint + '/likes', options);
+      const data = await response.json();
+      return data;
+  }
+  catch(err) {
+      return { status: 0, message: 'Can not connect to the server', code: 999 };
+  }
+};
+
+// ====================== NOT IMPLEMENTED YET ======================
+export const deleteUser = async(token) => {
+  try {
+      const options = {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      };
+      const response = await fetch(usersEndpoint, options);
       const data = await response.json();
       return data;
   }

@@ -1,8 +1,8 @@
 <script>
     import IconUser from '../../MiniComponents/IconUser.svelte';
     import { url } from '@sveltech/routify';
-    import { searchUsers } from './../../../helpers/auth.js';
-    import { store } from './../../../stores/store.js';
+    import { searchUsers } from './../../../helpers/user';
+    import { store } from './../../../stores/store';
     import { goto } from '@sveltech/routify';
     import { onMount } from 'svelte';
 

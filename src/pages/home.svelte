@@ -1,17 +1,18 @@
 <script>
 	import Posts from './../components/Posts/Posts.svelte';
 	import ChatList from './../components/ChatList/ChatList.svelte';
-	import { store } from './../stores/store.js';
-	import { getAccessToken } from './../helpers/auth';
+	import { store } from './../stores/store';
+	import { getAccessToken } from './../helpers/user';
 	import { getFeedPosts } from './../helpers/posts';
 	import { onDestroy } from 'svelte';
 
-	let eventSource;
+	// ====================== DYNAMIC VARIABLES ======================
+	let eventSource, dataLoaded;
 
-	onDestroy(() => {
-		if(eventSource) eventSource.close();
-	});
+	// ====================== LIFECYCLE METHODS ======================
+	onDestroy(() => { if(eventSource) eventSource.close() });
 
+	// ====================== GET INITIAL POSTS ======================
 	const getPosts = async() => {
 		const posts = await getFeedPosts(0, $store.accessToken);
 
@@ -33,35 +34,39 @@
 		}
 	}
 	
+	// ====================== WATCH POSTS FOR CHANGES ======================
 	const subscribePosts = async() => {
 		eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
+
 		eventSource.addEventListener('message', e => {
 			try {
 				if(e.data !== '0') { 
 					const updatedPost = JSON.parse(e.data);
 
+					// ====================== NEW POST ======================
 					if(updatedPost.hasOwnProperty('isNew')) {
 						delete updatedPost.isNew;
 						if($store.posts.findIndex(post => post._id === updatedPost._id) === -1) $store.posts = [ updatedPost, ...$store.posts ];
 					} 
 
+					// ====================== DELETED POST ======================
 					else if(updatedPost.hasOwnProperty('deletedPostId')) {
 						const filteredPosts = $store.posts.filter(post => post._id !== updatedPost.deletedPostId);
         				$store.posts = filteredPosts;
 					}
 
+					// ====================== EDITED POST ======================
 					else {
 						const updatedPostIndex = $store.posts.findIndex(post => post._id === updatedPost._id);
 						$store.posts[updatedPostIndex] = updatedPost; 
 					}
 				}
 			} catch (err) {
-				if(err) return console.log('ERROR', err);
+				return console.log('ERROR', err);
 			}
 		});
 	}
 	
-	let dataLoaded;
 	if($store.isAuthenticated) dataLoaded = getPosts();
 	
 </script>
@@ -73,17 +78,24 @@
 {:then data}
 	<main>
 		<div class="contentContainer">
+
+			<!-- GROUPS  - LEFT CONTAINER -->
 			<div class="groupsContainer">
 				<div class="hidden"></div>
 				<div class="groups"></div>
 			</div>
+
+			<!-- POSTS - MIDDLE CONTAINER -->
 			<div class="postsContainer">
 				<Posts />
 			</div>
+
+			<!-- CHAT LIST - RIGHT CONTAINER -->
 			<div class="chatlistContainer">
 				<div class="hidden"></div>
 				<div class="chatList"><ChatList /></div>
 			</div>
+
 		</div>
 	</main>
 {:catch error}

@@ -1,14 +1,14 @@
 <script>
     import { validateForm } from './../helpers/validation';
-    import { getNotificationsContext } from 'svelte-notifications';
+    import { showNotification } from './../helpers/actionNotifications';
     import Icon from 'svelte-awesome';
     import { spinner } from 'svelte-awesome/icons';
-    import { recoverOrResendValidation } from './../helpers/auth';
-
-    const { addNotification } = getNotificationsContext();
+    import { recoverOrResendValidation } from './../helpers/user';
     
+    // ====================== DYNAMIC VARIABLES ======================
     let recoverEmail = 'rotar.seby1@gmail.com', buttonLoading = false;;
 
+    // ====================== RECOVER USER PASSWORD ======================
     const handleRecover = async() => {
         // ====================== VALIDATION ======================
         const recoverAccData = [ 
@@ -18,23 +18,16 @@
         const isFormValid = validateForm(recoverAccData);
         if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+        // ====================== REQUEST ======================
         buttonLoading = true;
         const res = await recoverOrResendValidation(recoverAccData);
         buttonLoading = false;
 
         // ====================== RESPONSE ======================
         if(res.status === 1) {
+            recoverEmail = '';
             return showNotification('success', 'An email was sent to you!');
         } else return showNotification('danger', res.message);
-    }
-
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
     }
 
 </script>
@@ -42,6 +35,7 @@
 <div class="recoverPassContainer">
     <h1>Recover your account</h1>
     <div class="text">Just insert your email and we will handle the rest.</div>
+
     <form class="recoverForm" on:submit|preventDefault={handleRecover}>
 
         <div class="inputContainer">
@@ -55,7 +49,9 @@
                 Send email
             {/if}
         </button>
+        
     </form>
+
 </div>
 
 <style>

@@ -1,8 +1,8 @@
 <script>
     import ProfileImg from './../../../MiniComponents/ProfileImage.svelte';
-    import { store } from './../../../../stores/store.js';
+    import { store } from './../../../../stores/store';
     import { goto } from '@sveltech/routify';
-    import { logout } from './../../../../helpers/auth.js';
+    import { logout } from './../../../../helpers/user';
 
     export let hideDrop = undefined;
 

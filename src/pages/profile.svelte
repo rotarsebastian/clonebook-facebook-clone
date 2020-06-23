@@ -1,25 +1,24 @@
 
 <script>
-	import { store } from './../stores/store.js';
-    import { getAccessToken, getSpecificUser } from './../helpers/auth';
+	import { store } from './../stores/store';
+    import { getAccessToken, getSpecificUser } from './../helpers/user';
 	import { params } from '@sveltech/routify';
-	import { getNotificationsContext } from 'svelte-notifications';
 	import ProfileImage from './../components/MiniComponents/ProfileImage.svelte';
 	import ProfileIntro from './../components/ProfileIntro/ProfileIntro.svelte';
 	import Posts from './../components/Posts/Posts.svelte';
 	import { getUserPosts } from './../helpers/posts';
-	import Modal from './../components/Modals/Modal.svelte';
 	import { onDestroy } from 'svelte';
 
-	let eventSource;
+	// ====================== DYNAMIC VARIABLES ======================
+	let eventSource, user_profile, user_posts, subscribed = false;
 
-	onDestroy(() => {
-		if(eventSource) eventSource.close();
-	});
+	// ====================== LIFECYCLE METHODS ======================
+	onDestroy(() => { if(eventSource) eventSource.close() });
 
-	let user_profile, user_posts, subscribed = false;
+	// ====================== REACTIVE ELEMENTS ======================
 	$: user_posts;
 
+	// ====================== GET INITIAL USER POSTS ======================
 	const getPosts = async(id) => {
 		const posts = await getUserPosts(id, 0, $store.accessToken);
 
@@ -38,23 +37,31 @@
 		} else return posts;
 	}
 	
+	// ====================== WATCH FOR CHANGES INTO POSTS ======================
 	const subscribePosts = async() => {
 		eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
+
 		eventSource.addEventListener('message', e => {
 			try {
 				if(e.data !== '0') { 
 					const updatedPost = JSON.parse(e.data);
+
+					// ====================== CHECK IF IT IS CURRENT PROFILE POST ======================
 					if(updatedPost.authorId === $params.id) {
+
+						// ====================== NEW POST ======================
 						if(updatedPost.hasOwnProperty('isNew')) {
 							delete updatedPost.isNew;
 							if(user_posts.findIndex(post => post._id === updatedPost._id) === -1) user_posts = [ updatedPost, ...user_posts ];
 						} 
 	
+						// ====================== REMOVED POST ======================
 						else if(updatedPost.hasOwnProperty('deletedPostId')) {
 							const filteredPosts = user_posts.filter(post => post._id !== updatedPost.deletedPostId);
 							user_posts = filteredPosts;
 						}
 	
+						// ====================== EDITED POST ======================
 						else {
 							const updatedPostIndex = user_posts.findIndex(post => post._id === updatedPost._id);
 							user_posts[updatedPostIndex] = updatedPost; 
@@ -62,16 +69,20 @@
 					}
 				}
 			} catch (err) {
-				if(err) return console.log('ERROR', err);
+				return console.log('ERROR', err);
 			}
 		});
 	}
-	    	
+		
+	// ====================== LOAD INITIAL DATA - USER DETAILS & POSTS ======================
 	const getUserData = async(id) => {
         const result = await getSpecificUser(id, $store.accessToken);
 		user_profile = result.data;
 		const postsData = await getPosts(id);
 		user_posts = postsData;
+
+		// ====================== AVOID CREATING ANOTHER SUBSCRIBE WHEN CHANGING FROM A PROFILE TO ANOTHER ======================
+		// ====================== PARAMS IS A STORE AND WILL CHANGE THE USER AUTOMATICALLY ======================
 		if(!subscribed) {
 			subscribePosts();
 			subscribed = true;
@@ -90,6 +101,7 @@
 				
 				const postsData = await getPosts(id);
 				user_posts = postsData;
+
 				if(!subscribed) {
 					subscribePosts();
 					subscribed = true;
@@ -98,6 +110,7 @@
 		}
 	}
 
+	// ====================== REACTIVE USER DATA - CHANGES THE PROFILE WHEN SWITCHING FROM A PROFILE PAGE TO ANOTHER ======================
 	$: userData = getUserData($params.id);
 	
 </script>
@@ -105,23 +118,28 @@
 {#await userData}
 	<p>...waiting</p>
 {:then data}
-	<Modal>
-		<div class="contentContainer">
-			<ProfileImage 
-				size={15} 
-				slideShowImgs={user_profile.images && user_profile.images.length > 0 ? user_profile.images : undefined} 
-				img={user_profile.images && user_profile.images.length > 0 ? user_profile.images[0] : undefined} 
-			/>
-			<div class="userFullName">{user_profile.first_name} {user_profile.last_name}</div>
-			<ProfileIntro {user_profile} />
-			{#if user_posts.length > 0}
-				<p class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</p>
-				{:else}
-				<p class="postsTitle">No posts yet</p>
-			{/if}
-			<Posts propsPosts={user_posts} />
-		</div>
-	</Modal>
+	<div class="contentContainer">
+
+		<!-- PROFILE IMAGE & FULL NAME & INTRO SECTION -->
+		<ProfileImage 
+			size={15} 
+			slideShowImgs={user_profile.images && user_profile.images.length > 0 ? user_profile.images : undefined} 
+			img={user_profile.images && user_profile.images.length > 0 ? user_profile.images[0] : undefined} 
+		/>
+
+		<div class="userFullName">{user_profile.first_name} {user_profile.last_name}</div>
+
+		<ProfileIntro {user_profile} />
+
+		<!-- SHOW USER POSTS -->
+		{#if user_posts.length > 0}
+			<p class="postsTitle">{user_profile._id === $store.user._id ? 'Your posts' : `${user_profile.first_name}'s posts`}</p>
+			{:else}
+			<p class="postsTitle">No posts yet</p>
+		{/if}
+		<Posts propsPosts={user_posts} />
+		
+	</div>
 {:catch error}
 	<p style="color: red">{error.message}</p>
 {/await}

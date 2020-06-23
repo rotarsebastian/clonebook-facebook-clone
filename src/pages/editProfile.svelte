@@ -1,31 +1,20 @@
 <script>
-	import { store } from './../stores/store.js';
-    import { getAccessToken, getSpecificUser, updateProfile } from './../helpers/auth';
+	import { store } from './../stores/store';
+    import { updateProfile } from './../helpers/user';
 	import ProfileImage from './../components/MiniComponents/ProfileImage.svelte';
 	import AddImages from './../components/MiniComponents/AddImages.svelte';
 	import Thumb from './../components/MiniComponents/Thumb.svelte';
-	import { getNotificationsContext } from 'svelte-notifications';
+	import { showNotification } from './../helpers/actionNotifications';
 	import { validateForm } from './../helpers/validation';
-	import Modal from './../components/Modals/Modal.svelte';
 	
-    const { addNotification } = getNotificationsContext();
+	// ====================== DYNAMIC VARIABLES ======================
+	let first_name = $store.user.first_name, last_name = $store.user.last_name,
+		oldImages = $store.user.images, newImages = [];
 
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-	}
-    
-	let first_name = $store.user.first_name, last_name = $store.user.last_name;
-
+	// ====================== REACTIVE ELEMENTS ======================
 	$: buttonDisabled = $store.selectedProfileImage ? false : true
 
-	let oldImages = $store.user.images;
-	let newImages = [];
-
+	// ====================== ADD NEW IMAGES ======================
 	const setNewImages = files => {
 		$store.temporaryImages = [ ...files.map(img => img.preview) ];
 		setTimeout(() => {
@@ -34,6 +23,7 @@
 		}, 100);
 	}
 
+	// ====================== REMOVE PERVIOUS IMAGES ======================
 	const removeOldImage = index => {
         const newFiles = [ ...oldImages ];
 		newFiles.splice(index, 1);
@@ -41,7 +31,9 @@
 		buttonDisabled = false;
 	}
 	
+	// ====================== EDIT USER PROFILE ======================
 	const editProfile = async() => {
+
 		// ====================== VALIDATION ======================
         const editProfileData = [
 			{ type: 'first_name', val: first_name },
@@ -59,15 +51,17 @@
         requestData.append('data', JSON.stringify(editProfileData));
 		newImages.map(file => requestData.append('image', file, file.name));
 		
-		// ====================== GET THE PROFILE IMAGE ======================
+		// ====================== CHECK IF CHANGED PROFILE IMAGE ======================
 		let newProfileImage;
-
+		
 		if($store.selectedProfileImage !== null) {
 			if($store.selectedProfileImage.includes('blob')) {
 				newProfileImage = newImages.findIndex(img => img.preview === $store.selectedProfileImage);
 			} 
 			else newProfileImage = oldImages.find(img => img === $store.selectedProfileImage);
 		}
+
+		// ====================== REQUEST ======================
 		const res = newProfileImage !== undefined ? await updateProfile(requestData, $store.accessToken, newProfileImage) : await updateProfile(requestData, $store.accessToken);
 		
         // ====================== RESPONSE ======================
@@ -82,54 +76,59 @@
 	
 </script>
 
-<Modal>
-	<div class="contentContainer">
-		<ProfileImage size={15} img={$store.user.images[0]} />
-		<div class="userFullName">{$store.user.first_name} {$store.user.last_name}</div>
+<div class="contentContainer">
 
-		<div class="inputContainer">
-			<label for="first_name">First name</label>
-			<input 
-				class="input" 
-				id="first_name" 
-				name="first_name" 
-				type="text" 
-				placeholder="Your first name" 
-				bind:value={first_name} 
-				on:input={() => buttonDisabled = false} 
-			/>
-		</div>
+	<!-- PROFILE IMAGE & NAME -->
+	<ProfileImage size={15} img={$store.user.images[0]} />
+	<div class="userFullName">{$store.user.first_name} {$store.user.last_name}</div>
 
-		<div class="inputContainer">
-			<label for="last_name">Last name</label>
-			<input 
-				class="input last" 
-				id="last_name" 
-				name="last_name" 
-				type="text" 
-				placeholder="Your last name" 
-				bind:value={last_name} 
-				on:input={() => buttonDisabled = false} 
-			/>
-		</div>
-
-		<p class="addRemoveImages">Add / Remove profile images</p>
-		<div class="thumbsContainer">
-			{#each oldImages as image, index}
-				<Thumb removeImage={removeOldImage} oldImage={image} index={index} />
-			{/each}
-			<AddImages files={newImages} setNewFiles={setNewImages} />
-		</div>
-
-		<p class="infoContainer"><span>Click:</span>Select profile picture</p>
-		<p class="infoContainer"><span>Double click:</span>See images in fullscreen mode</p>
-		<p class="infoContainer"><span>Info:</span>You can add maximum 5 new pictures at once</p>
-
-		<button class="editProfileButton" on:click={editProfile} class:disabled={buttonDisabled} disabled={buttonDisabled}>
-			Save changes
-		</button>
+	<!-- FIRST NAME -->
+	<div class="inputContainer">
+		<label for="first_name">First name</label>
+		<input 
+			class="input" 
+			id="first_name" 
+			name="first_name" 
+			type="text" 
+			placeholder="Your first name" 
+			bind:value={first_name} 
+			on:input={() => buttonDisabled = false} 
+		/>
 	</div>
-</Modal>
+
+	<!-- LAST NAME -->
+	<div class="inputContainer">
+		<label for="last_name">Last name</label>
+		<input 
+			class="input last" 
+			id="last_name" 
+			name="last_name" 
+			type="text" 
+			placeholder="Your last name" 
+			bind:value={last_name} 
+			on:input={() => buttonDisabled = false} 
+		/>
+	</div>
+
+	<!-- ADD / REMOVE PROFILE IMAGES  -->
+	<p class="addRemoveImages">Add / Remove profile images</p>
+	<div class="thumbsContainer">
+		{#each oldImages as image, index}
+			<Thumb removeImage={removeOldImage} oldImage={image} index={index} />
+		{/each}
+		<AddImages files={newImages} setNewFiles={setNewImages} />
+	</div>
+
+	<!-- INFO -->
+	<p class="infoContainer"><span>Click:</span>Select profile picture</p>
+	<p class="infoContainer"><span>Double click:</span>See images in fullscreen mode</p>
+	<p class="infoContainer"><span>Info:</span>You can add maximum 5 new pictures at once</p>
+
+	<!-- SUBMIT BUTTON -->
+	<button class="editProfileButton" on:click={editProfile} class:disabled={buttonDisabled} disabled={buttonDisabled}>
+		Save changes
+	</button>
+</div>
 
 <style>
 	.contentContainer {

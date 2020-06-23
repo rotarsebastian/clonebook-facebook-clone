@@ -1,22 +1,23 @@
 <script>
     import moment from 'moment';
-    import { register } from './../helpers/auth';
+    import { register } from './../helpers/user';
+    import { showNotification } from './../helpers/actionNotifications';
     import { validateForm } from './../helpers/validation';
-    import { getNotificationsContext } from 'svelte-notifications';
     import Icon from 'svelte-awesome';
     import { spinner } from 'svelte-awesome/icons';
 
-    const { addNotification } = getNotificationsContext();
-
+    // ====================== DYNAMIC VARIABLES ======================
     let day = parseInt(moment().format('D')), month = moment().month() + 1, year = moment().year();
     let registerFirstName = '', registerSurname = '', registerEmail = '', registerPass = '', gender, buttonLoading = false;
 
+    // ====================== CREATE AN INTERVAL FROM A NUMBER AND THE LENGTH - Ex createNumInterval(1, 31) => 1, 2, ... ,31 ======================
     const createNumInterval = (from, length) => {
         const intervalArray = [];
         Array(length).fill('').map((item, index) => intervalArray.push(from + index));
         return intervalArray;
     }
 
+    // ====================== CREATE ALL THE MONTH OF THE YEAR - FORMAT (Jan, Feb, ...) ======================
     const createMonthSelect = () => {
         const monthsArray = [];
         Array(12).fill('').map((item, index) => {
@@ -25,6 +26,7 @@
         return monthsArray;
     }
 
+    // ====================== CAPITALIZE EACH WORD AFTER A SPACE ======================
     const capitalizeEachName = text => {
         return text.trim()
             .toLowerCase()
@@ -33,7 +35,9 @@
             .join(' ');
     }
 
+    // ====================== REGISTER USER ======================
     const handleRegister = async() => {
+
         // ====================== VALIDATION ======================
         const registerData = [ 
             { type: 'first_name', val: capitalizeEachName(registerFirstName) }, 
@@ -47,6 +51,7 @@
         const isFormValid = validateForm(registerData);
         if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+        // ====================== REQUEST ======================
         buttonLoading = true;
         const res = await register(registerData);
         buttonLoading = false;
@@ -59,14 +64,6 @@
         } else return showNotification('danger', res.message);
     }
 
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
 </script>
 
 <div class="registerContainer">
@@ -75,6 +72,7 @@
     <div class="text">It's quick and easy.</div>
     <form class="registerForm" on:submit|preventDefault={handleRegister}>
 
+        <!-- FIRST NAME & LAST NAME & EMAIL & PASSWORD -->
         <div class="nameContainer">
             <input class="input" name="first_name" type="text" placeholder="First name" bind:value={registerFirstName} />
             <input class="input" name="surname" type="text" placeholder="Surname" bind:value={registerSurname} />
@@ -88,6 +86,7 @@
             <input class="input" name="password" type="password" placeholder="New password" bind:value={registerPass} />
         </div>
 
+        <!-- BIRTHDATE -->
         <label class="label">Birthday</label>
 
         <div class="selectContainer">
@@ -110,6 +109,7 @@
             </select>
         </div>
 
+        <!-- GENDER -->
         <label class="label">Gender</label>
 
         <div class="genderContainer">
@@ -124,6 +124,7 @@
             </label>
         </div>
 
+        <!-- REGISTER BUTTON -->
         <button class="registerButton" disabled={!registerFirstName || !registerSurname || !registerEmail || !registerPass || !gender} type="submit">
             {#if buttonLoading}
                 <Icon class="spinner" scale={1.25} data={spinner} pulse />
@@ -132,6 +133,7 @@
             {/if}
         </button>
     </form>
+
 </div>
 
 <style>

@@ -3,14 +3,14 @@
     import EditDelete from './../MiniComponents/EditDelete.svelte';
     import { getContext } from 'svelte';
     import Dialog from './../Modals/Dialog.svelte';
-    import { like } from '../../helpers/icons.js';
+    import { like } from '../../helpers/icons';
     import { goto } from '@sveltech/routify';
-    import { store } from './../../stores/store.js';
-    import { editComment, likeComment } from './../../helpers/posts.js';
+    import { store } from './../../stores/store';
+    import { editComment, likeComment } from './../../helpers/posts';
     import { getNotificationsContext } from 'svelte-notifications';
     import { validateForm } from './../../helpers/validation';
     import { parseDate } from './../../helpers/dateParser';
-    import { getUsersByIDs } from '../../helpers/auth.js';
+    import { getUsersByIDs } from '../../helpers/user';
     import UsersList from './../Modals/UsersList.svelte';
 
     const { addNotification } = getNotificationsContext();

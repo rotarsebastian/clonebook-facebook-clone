@@ -1,9 +1,9 @@
 <script>
     import moment from 'moment';
-    import { store } from './../../stores/store.js';
+    import { store } from './../../stores/store';
     import { getNotificationsContext } from 'svelte-notifications';
     import { sendFriendRequest } from './../../helpers/notifications';
-    import { deleteFriend } from './../../helpers/auth';
+    import { deleteFriend } from './../../helpers/user';
     import { goto } from '@sveltech/routify';
     
     export let user_profile;

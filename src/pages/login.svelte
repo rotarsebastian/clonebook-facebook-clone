@@ -3,52 +3,46 @@
     import ForgotPass from './../components/ForgotPass.svelte';
     import ChangePass from './../components/ChangePass.svelte';
     import { validateForm } from './../helpers/validation';
-    import { store } from './../stores/store.js';
+    import { store } from './../stores/store';
     import { goto } from '@sveltech/routify';
-    import { getNotificationsContext } from 'svelte-notifications';
+    import { showNotification } from './../helpers/actionNotifications';
     import Icon from 'svelte-awesome';
     import { spinner } from 'svelte-awesome/icons';
-    import { login } from './../helpers/auth';
+    import { login } from './../helpers/user';
     import { isUuid } from 'uuidv4';
 
-    const { addNotification } = getNotificationsContext();
+    // ====================== DYNAMIC VARIABLES ======================
+    let loginPass = '123123', loginEmail = 'rotar.seby1@gmail.com',
+        showForgotPass = false, showChangePass = false, buttonLoading = false;
 
-    let loginPass = '123123', loginEmail = 'rotar.seby1@gmail.com', buttonLoading = false;
+    // ====================== CONSTANT VARIABLES ======================
+    const searchParams = new URLSearchParams(location.search),
+        key = searchParams.get('key'),
+        activatedKey = searchParams.get('activated'),
+        isExpired = searchParams.get('expired'); 
 
-    let showForgotPass = false;
-    let showChangePass = false;
-
-    const searchParams = new URLSearchParams(location.search);
-    const key = searchParams.get('key'); 
-    const activatedKey = searchParams.get('activated'); 
-    const isExpired = searchParams.get('expired'); 
-
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
-
+    // ====================== LINK TO CHANGE PASS EXPIRED ======================
     if(isExpired && isExpired === 'true') {
-        showNotification('success', 'Your link has expired!');
+        showNotification('warning', 'Your link has expired!');
         $goto('login');
     }
 
+    // ====================== ACCOUNT IS VERIFIED AND ACTIVATED ======================
     else if(activatedKey && isUuid(activatedKey)) {
         showNotification('success', 'Your account is now activated!');
         $goto('login');
     }
 
+    // ====================== LINK TO CHANGE PASS ACCEPTED - SWITCH TO CHANGE PASS ======================
     else if(key && isUuid(key)) {
         $store.user.changeKey = key;
         $goto('login');
         showChangePass = true;
     }
 
+    // ====================== LOGIN USER ======================
     const handleLogin = async() => {
+
         // ====================== VALIDATION ======================
         const loginData = [ 
             { type: 'email', val: loginEmail }, 
@@ -58,6 +52,7 @@
         const isFormValid = validateForm(loginData);
         if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+        // ====================== REQUEST ======================
         buttonLoading = true;
         const res = await login(loginData);
         buttonLoading = false;
@@ -73,12 +68,15 @@
         } else return showNotification('danger', res.message);
     }
 
+    // ====================== GET BACK TO LOGIN ======================
     const goBack = () => showChangePass = false;
 
 </script>
 
+<!-- BLUE TOP BAR -->
 <nav>
     <span style="cursor: pointer;" class="logo" on:click={() => showForgotPass = false}></span>
+
     <form class="loginForm" on:submit|preventDefault={handleLogin}>
 
         <div class="inputContainer">
@@ -102,6 +100,7 @@
     </form>
 </nav>
 
+<!-- PAGE UNDER TOP BAR -->
 {#if showForgotPass}
     <ForgotPass />
     {:else if showChangePass}
