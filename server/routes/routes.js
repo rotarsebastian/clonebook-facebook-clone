@@ -1,6 +1,6 @@
 // ====================== IMPORTS ======================
 const app = require('express')();
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit');
 
 // ====================== IMPLEMENT LIMITER ======================
 // const authLimiter = rateLimit({

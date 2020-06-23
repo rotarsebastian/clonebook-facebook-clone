@@ -37,7 +37,7 @@ const transportObject = {
 }
 let transporter = nodemailer.createTransport(transportObject);
 
-// ====================== GET A SPECIFIC USER ======================
+// ====================== GET LOGGED USER ======================
 router.get('/loggedUser', isAuthenticated, async(req, res) => {
     try {
         // ====================== GET THE USER ID ======================
@@ -73,27 +73,6 @@ router.get('/user/:id', isAuthenticated, async(req, res) => {
 
     } catch (err) {
         return res.json({ status: 0, message: 'Error getting user!'});
-    }
-});
-
-// ====================== DELETE A USER ======================
-router.delete('/', isAuthenticated, async(req, res) => {
-    try {
-        const user = await User.query().deleteById(req.session.user.id);
-        if (!user) return res.json({ status: 0, message: 'Error deleting the user!'});
-
-        req.session.destroy(err => {
-            if(err) return res.json({ status: 0, message: 'Error while trying to delete user!', code: 404 });
-    
-            // ====================== CLEAR USER COOKIE ======================
-            res.clearCookie('user_sid');
-    
-            // ====================== EVERYTHING OK ======================
-            return res.json({ status: 1, message: 'User deleted successfully!'});
-        });
-
-    } catch (err) {
-        return res.json({ status: 0, message: 'Error deleting the user!'});
     }
 });
 
@@ -549,6 +528,29 @@ router.post('/likes', isAuthenticated, async(req, res) => {
 
     } catch (err) {
         return res.json({ status: 0, message: 'Error getting users!'});
+    }
+});
+
+// ====================== NOT IMPLEMENTED YET ======================
+
+// ====================== DELETE A USER ======================
+router.delete('/', isAuthenticated, async(req, res) => {
+    try {
+        const user = await User.query().deleteById(req.session.user.id);
+        if (!user) return res.json({ status: 0, message: 'Error deleting the user!'});
+
+        req.session.destroy(err => {
+            if(err) return res.json({ status: 0, message: 'Error while trying to delete user!', code: 404 });
+    
+            // ====================== CLEAR USER COOKIE ======================
+            res.clearCookie('user_sid');
+    
+            // ====================== EVERYTHING OK ======================
+            return res.json({ status: 1, message: 'User deleted successfully!'});
+        });
+
+    } catch (err) {
+        return res.json({ status: 0, message: 'Error deleting the user!'});
     }
 });
 

@@ -3,7 +3,6 @@ const router = require('express').Router();
 const { isAuthenticated } = require(__dirname + '/../../helpers/auth');
 const Conversation = require(__dirname + '/../../models/Conversation');
 const User = require(__dirname + '/../../models/User');
-const ObjectId = require('mongoose').Types.ObjectId;
 
 // ====================== GET CONVERSATION ======================
 router.get('/:id', isAuthenticated, async(req, res) => {

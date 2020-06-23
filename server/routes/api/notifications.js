@@ -7,7 +7,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 global.globalRequests = 0;
 global.touchedRequest = null;
 
-// ====================== WATCH USER friendRequests ======================
+// ====================== WATCH USER FRIEND REQUESTS ======================
 router.get('/subscribe', async(req, res) => {
     try {
         let localRequests = 0;
