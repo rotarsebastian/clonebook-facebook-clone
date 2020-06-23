@@ -15,7 +15,7 @@
 			$store.accessToken = accessToken;
 			const loggedUserData = await getLoggedUserData(accessToken);
 			$store.user = loggedUserData.data;
-		} 
+		}
 	}
 
 	const isLoggedIn = checkAuth();

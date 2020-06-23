@@ -4,14 +4,10 @@
     import { store } from './../stores/store.js';
     import ChatContainer from './../components/ChatContainer/ChatContainer.svelte';
 
-    const excludedPaths = [
-        '/login', '/register', '/forgotPassword', 'changePassword'
-    ];
+    const excludedPaths = [ '/login' ];
 
-    const noNav = excludedPaths.indexOf($route.path) > -1 || $route.leftover.length > 0 ? true : false;
-
-    if(!$store.isAuthenticated) $goto('./login', undefined, true);
-    else if($store.isAuthenticated && noNav)  $goto('./home');
+    if(!$store.isAuthenticated) $goto('login');
+    else if($store.isAuthenticated)  $goto('home');
 
 </script>
 

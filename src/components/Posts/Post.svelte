@@ -171,7 +171,7 @@
     <div class="topContainer">
         <ProfileImg size={2} img={post.authorImg} slideShowImgs={[ post.authorImg ]} />
         <div class="nameContainer">
-            <div class="name" on:click={() => $goto('../profile', { id: post.authorId })}>{post.author}</div>
+            <div class="name" on:click={() => $goto('profile', { id: post.authorId })}>{post.author}</div>
             <div class="time">{parseDate(post.date)}</div>
         </div>
         {#if post.authorId === $store.user._id}

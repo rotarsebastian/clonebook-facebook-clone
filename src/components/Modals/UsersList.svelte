@@ -16,7 +16,7 @@
 <div id="likesList">
     <div id="title">Likes</div>
     {#each users as user}
-        <div class="userItem" on:click={() => $goto(`/profile?id=${user._id}`)}>
+        <div class="userItem" on:click={() => $goto(`profile?id=${user._id}`)}>
             <IconUser user={{ name: `${user.first_name} ${user.last_name}`, image: user.images[0] }} />
         </div>
     {/each}

@@ -1,6 +1,5 @@
 <script>
-    import { route, goto } from '@sveltech/routify';
-    $goto('../home');
+    import { route } from '@sveltech/routify';
 </script>
 
 <div class="contentContainer">

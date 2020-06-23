@@ -31,7 +31,7 @@
 
     // ====================== REDIRECT TO USER PROFILE ======================
     const handleRedirect = id => {
-        $goto(`/profile?id=${id}`);
+        $goto(`profile?id=${id}`);
         // $goto('/profile', { id });
         showingResults = false;
         ajUsers = [];

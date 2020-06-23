@@ -5,7 +5,7 @@
     import { goto } from '@sveltech/routify';
     
     const handleClick = () => {
-        if(click) $goto(`/profile?id=${user.friend_id}`);
+        if(click) $goto(`profile?id=${user.friend_id}`);
     }
 
 </script>

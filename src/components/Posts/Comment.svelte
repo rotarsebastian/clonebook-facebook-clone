@@ -113,7 +113,7 @@
         <div>
             <div class="commLike">
                 <div class="comment">
-                    <div class="name" on:click={() => $goto('../profile', { id: comment.authorId })}>{comment.author}</div>
+                    <div class="name" on:click={() => $goto('profile', { id: comment.authorId })}>{comment.author}</div>
                     <div class="comm">{comment.text}</div>
                 </div>
                 

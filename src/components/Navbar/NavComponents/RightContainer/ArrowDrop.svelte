@@ -11,7 +11,7 @@
         const response = await logout(localStorage.getItem('refreshToken'));
         if(response.status === 1) {
             localStorage.removeItem('refreshToken');
-            $goto('../login');
+            $goto('login');
             $store.chatUserStore = null;
             $store.posts = [];
             $store.isAuthenticated = false;
@@ -22,7 +22,7 @@
     // ====================== REDIRECT TO USER PROFILE ======================
     const redirectToProfile = () => {
         hideDrop('arrowDrop');
-        $goto(`/profile?id=${$store.user._id}`);
+        $goto(`profile?id=${$store.user._id}`);
     }
 
 </script>

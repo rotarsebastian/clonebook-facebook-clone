@@ -255,7 +255,7 @@
 <div class="rightContainer">
 
     <!-- PERSONAL PROFILE -->
-    <div class="profileContainer" on:click={() => $goto(`/profile?id=${$store.user._id}`)}>
+    <div class="profileContainer" on:click={() => $goto(`profile?id=${$store.user._id}`)}>
         <ProfileImg size={1.75} img={$store.user.images[0]} slideShowImgs={$store.user.images[0]} />
         <div class="profileName">{$store.user.first_name}</div>
     </div>

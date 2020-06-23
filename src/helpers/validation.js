@@ -28,11 +28,11 @@ export const validateInputValue = (type, value) => {
         case 'email':
             return /@.+\.[A-Za-z]{2,}$/.test(value);
         case 'first_name':
-            return value.length >= 2 && value.length <= 50 && /^[\p{L} .'-]+$/u.test(value);
+            return value.length >= 2 && value.length <= 50 && /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/.test(value);
         case 'last_name':
-            return value.length >= 2 && value.length <= 50 && /^[\p{L} .'-]+$/u.test(value);
+            return value.length >= 2 && value.length <= 50 && /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/.test(value);
         case 'gender':
-            return value.length >= 4 && value.length <= 6 && /^[\p{L} .'-]+$/u.test(value);
+            return value.length >= 4 && value.length <= 6 && /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/.test(value);
         case 'birthdate':
             return value.length === 10 && /^\d{4}-((0\d)|(1[012]))-(([012]\d)|3[01])$/.test(value);
         case 'images':
@@ -40,7 +40,7 @@ export const validateInputValue = (type, value) => {
 
         // ====================== POST VALIDATION ======================
         case 'author':
-            return value.length >= 2 && value.length <= 80 && /^[\p{L} .'-]+$/u.test(value);
+            return value.length >= 2 && value.length <= 80 && /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/.test(value);
         case 'authorImg':
             return (value && value.length < 45 && typeof value === 'string') || value === null;
         case 'text':

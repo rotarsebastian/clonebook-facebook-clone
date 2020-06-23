@@ -34,17 +34,17 @@
 
     if(isExpired && isExpired === 'true') {
         showNotification('success', 'Your link has expired!');
-        $goto('/login');
+        $goto('login');
     }
 
     else if(activatedKey && isUuid(activatedKey)) {
         showNotification('success', 'Your account is now activated!');
-        $goto('/login');
+        $goto('login');
     }
 
     else if(key && isUuid(key)) {
         $store.user.changeKey = key;
-        $goto('/login');
+        $goto('login');
         showChangePass = true;
     }
 
@@ -68,7 +68,7 @@
             $store.user = res.loggedUser;
             $store.accessToken = res.accessToken;
             localStorage.setItem('refreshToken', res.refreshToken);
-            $goto('./home');
+            $goto('home');
             return showNotification('success', 'You are now logged in!');
         } else return showNotification('danger', res.message);
     }
