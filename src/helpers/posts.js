@@ -1,5 +1,5 @@
 // ====================== DEVELOPMENT ======================
-export const endpoint = 'http://localhost:9999/api';
+import { endpoint } from './user';
 const postsEndpoint = endpoint + '/posts';
 
 export const getFeedPosts = async(offset, token) => {

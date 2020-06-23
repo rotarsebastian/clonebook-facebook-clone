@@ -30,7 +30,6 @@
 </script>
 
 <!-- ######################################## -->
-
 <div id="notifDrop" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
     <div class="itemsContainer">
         <div class="items">
@@ -76,7 +75,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     .trash {
         position: absolute;

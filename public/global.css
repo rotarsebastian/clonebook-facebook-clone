@@ -63,6 +63,11 @@ img.profileImg {
 	font-size: .85rem;
 }
 
+.notifications {
+	z-index: 1001 !important;
+	position: fixed;
+}
+
 .default-notification-success {
 	background-color: rgb(105, 167, 78) !important;
     background-image: linear-gradient(rgb(103, 174, 85), rgb(87, 136, 67)) !important;

@@ -1,21 +1,12 @@
 <script>
+    import Thumb from './Thumb.svelte';
+    import { showNotification } from './../../helpers/actionNotifications';
+
+    // ====================== PROPS ======================
     export let files;
     export let setNewFiles;
 
-    import Thumb from './Thumb.svelte';
-    import { getNotificationsContext } from 'svelte-notifications';
-	
-    const { addNotification } = getNotificationsContext();
-
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
-
+    // ====================== ADD NEW IMAGES ======================
     const addImages = e => {
         const inputImages = Array.from(e.target.files);
 
@@ -36,6 +27,7 @@
         setNewFiles(updateImages);
     }
 
+    // ====================== REMOVE IMAGE FROM LIST ======================
     const removeImage = index => {
         const newFiles = [ ...files ];
         newFiles.splice(index, 1);
@@ -51,6 +43,7 @@
         <Thumb removeImage={removeImage} preview={file.preview} index={index} />
     {/each}
 
+    <!-- SHOW ADD MODE SIGN - IF THERE ARE LESS THAN 5 IMAGES -->
     {#if files.length < 5}
         <span class="addMoreContainer">
             <input 

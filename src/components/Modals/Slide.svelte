@@ -1,15 +1,19 @@
 <script>
+  // ====================== PROPS ======================
   export let slide;
   export let page;
 
+  // ====================== IMAGE URL ======================
   const url = slide.url.includes('blob') ? slide.url : `https://clonebook.s3.eu-north-1.amazonaws.com/${page}/${slide.url}`;
 </script>
 
+<!-- ######################################## -->
 <div class="slide"
   class:current={slide.selected}
   style="background: url('{url}') no-repeat center top/cover;">
 </div>
 
+<!-- ######################################## -->
 <style>
   .slide {
     position: absolute;

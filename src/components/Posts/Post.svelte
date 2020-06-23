@@ -12,37 +12,33 @@
     import { goto } from '@sveltech/routify';
     import { editPost, likePost, addCommentToPost, removeComment } from './../../helpers/posts';
     import { validateForm } from './../../helpers/validation';
-    import { getNotificationsContext } from 'svelte-notifications';
+    import { showNotification } from './../../helpers/actionNotifications';
     import { parseDate } from './../../helpers/dateParser';
 
-    const { addNotification } = getNotificationsContext();
+    const { open } = getContext('simple-modal');
 
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
-
+    // ====================== PROPS ======================
     export let id;
     export let onDelete;
     export let propsPost = undefined;
 
-    const { open } = getContext('simple-modal');
-
-    $: post = propsPost ? propsPost : $store.posts.find(post => post._id === id);
-
+    // ====================== DYNAMIC VARIABLES ======================
     let seeComments, commInput, showDropdown = false, editDelete;
 
+    // ====================== REACTIVE ELEMENTS ======================
+    $: post = propsPost ? propsPost : $store.posts.find(post => post._id === id);
+
+    // ====================== LIKE A POST ======================
     const handleLike = async() => {
         // ====================== CHECK IF IT IS LIKE OR UNLIKE ======================
         const likeType = post.likes.indexOf($store.user._id) === -1 ? 1 : 0;
-        const result = likeType === 1 ? await likePost(post._id, 1, $store.accessToken) : await likePost(post._id, 0, $store.accessToken);
+
+        likeType === 1 ? await likePost(post._id, 1, $store.accessToken) : await likePost(post._id, 0, $store.accessToken);
     }
 
+    // ====================== ADD COMMENT TO A POST ======================
     const addComment = async(e) => {
+
         // ====================== VALIDATION ======================
         const commentData = [ 
             { type: 'author', val: `${$store.user.first_name} ${$store.user.last_name}` }, 
@@ -53,45 +49,53 @@
         const isFormValid = validateForm(commentData);
         if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+        // ====================== REQUEST ======================
         const result = await addCommentToPost(post._id, commentData, $store.accessToken);
+
+        // ====================== RESPONSE ======================
         if(result.status === 1) {
             e.target.value = '';
             seeComments = true;
         }
     }
 
+    // ====================== DELETE A COMMENT ======================
     const deleteComment = async(id) => {
-        // const filteredComms = post.comments.filter(comm => comm.id !== id);
-        // post.comments = filteredComms;
-
         const result = await removeComment(post._id, id, $store.accessToken);
-        console.log(result);
 
         if(result.status === 1) {
             return showNotification('success', 'Comment deleted successfully!');
-        } 
+        } else return showNotification('danger', 'Comment cannot be deleted!');
     }
 
+    // ====================== EDIT POST ======================
     const onOkay = async(text) => {
         if(text) {
+
             // ====================== VALIDATION ======================
             const editPostData = [ { type: 'text', val: text } ];
 
             const isFormValid = validateForm(editPostData);
             if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+            // ====================== REQUEST ======================
             const result = await editPost(post._id, text, $store.accessToken);
             console.log(result);
 
-            if(result.status === 1) {
-                return showNotification('success', 'Post edited successfully!');
-            } 
+            // ====================== RESPONSE ======================
+            if(result.status === 1) return showNotification('success', 'Post edited successfully!');
+            else return showNotification('danger', 'Post cannot be edited!');
         }
+
+        // ====================== REDIRECT TO DELETE POST ======================
         else onDelete(post._id);
 	}
 
+    // ====================== SHOW EDIT / DELETE MODAL ======================
     const showDialog = dialogFor => {
         showDropdown = false;
+
+        // ====================== CHECK IF IT IS DELETE OR EDIT POST ======================
         const dialogObj = dialogFor === 'delete' ? 
             {
                 message: 'delete',
@@ -107,18 +111,19 @@
                 message: 'edit',
                 hasForm: true,
 				onOkay
-			};
-		open(
-			Dialog,
-			dialogObj,
+            };
+            
+        // ====================== OPEN MODAL ======================
+		open( Dialog, dialogObj,
 			{
 				closeButton: true,
                 closeOnEsc: true,
                 closeOnOuterClick: true,
 			}
-	  );
+	    );
     }
     
+    // ====================== SHOW IMAGES FULL-SCREEN ======================
     const showFullscreenImgs = images => {
         open(
 			Slides,
@@ -139,26 +144,30 @@
 	    );
     }
 
+    // ====================== OPEN MODAL WITH LIKES USER LIST ======================
     const getUsersWhichLiked = async() => {
         const result = await getUsersByIDs(post.likes, $store.accessToken);
-        open(
-			UsersList,
-			{ users: result.data },
-			{
-				closeButton: true,
-                closeOnEsc: true,
-                closeOnOuterClick: true,
-			}
-	    );
+
+        if(result.status === 1) {
+            open(
+                UsersList,
+                { users: result.data },
+                {
+                    closeButton: true,
+                    closeOnEsc: true,
+                    closeOnOuterClick: true,
+                }
+            );
+        }
     }
 
+    // ====================== ADD NEW COMMENT ======================
     const handleClickComment = () => {
         seeComments = true;
-        setTimeout(() => {
-            commInput.focus();
-        }, 100);
+        setTimeout(() => commInput.focus(), 100);
     }
 
+    // ====================== HANDLE CLICK OUTSIDE ======================
     window.addEventListener('click', e => {
         if(e.target === editDelete) showDropdown = !showDropdown;
         else if(showDropdown === true) showDropdown = false;
@@ -168,17 +177,24 @@
 
 <!-- ######################################## -->
 <div class="postContainer">
+
     <div class="topContainer">
+
+        <!-- PROFILE IMAGE & NAME & POST DATE -->
         <ProfileImg size={2} img={post.authorImg} slideShowImgs={[ post.authorImg ]} />
         <div class="nameContainer">
             <div class="name" on:click={() => $goto('profile', { id: post.authorId })}>{post.author}</div>
             <div class="time">{parseDate(post.date)}</div>
         </div>
+
+        <!-- EDIT / DELETE BUTTON -->
         {#if post.authorId === $store.user._id}
             <div>
                 <img bind:this={editDelete} class="editDelete" src="https://static.xx.fbcdn.net/rsrc.php/v3/yn/r/oVV-iPd4q_P.png" alt="" height="16" width="16" />
             </div>
         {/if}
+
+        <!-- EDIT / DELETE DROPDOWN -->
         {#if showDropdown}
             <div class="editPosition">
                 <EditDelete showDialog={showDialog} />
@@ -186,10 +202,12 @@
         {/if}
     </div>
 
+    <!-- POST TEXT -->
     <div class="textContainer">
         {post.text}
     </div>
 
+    <!-- POST IMAGES -->
     {#if post.hasOwnProperty('imgs')}
         <div class="postImgContainer">
             {#each post.imgs as img, index}
@@ -205,6 +223,7 @@
         </div>
     {/if}
 
+    <!-- POST LIKES -->
     {#if post.likes && post.likes.length > 0}
         <div class="likes" on:click={getUsersWhichLiked}>
             <img height="18" src={like} width="18" alt="like-img" />
@@ -212,6 +231,7 @@
         </div>
     {/if}
 
+    <!-- POST LIKE & COMMENTS BUTTONS -->
     <div class="buttonsContainer">
         <div class="button" class:liked={post.likes && post.likes.indexOf($store.user._id) > -1 ? true : false} on:click={handleLike}>
             <img draggable="false" height="18" width="18" alt="likeIcon" src="https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/HayyIjBF1VN.png" />
@@ -222,16 +242,19 @@
         </div>
     </div>
 
+    <!-- VIEW / HIDE COMMENTS BUTTON -->
     {#if post.comments && post.comments.length > 0}
         <div class="viewComments" on:click={() => seeComments = !seeComments}>{seeComments ? 'Hide' : 'View'} comments</div>
     {/if}
 
+    <!-- COMMENTS LIST -->
     {#if seeComments}
         {#each post.comments as comment}
             <Comment onDelete={deleteComment} comment={comment} postId={id} />
         {/each}
     {/if}
 
+    <!-- ADD NEW COMMENT INPUT -->
     <div class="bottomContainer">
         <ProfileImg size={2} img={$store.user.images[0]} />
         <input 
@@ -242,6 +265,7 @@
             on:keyup={e => e.key === "Enter" ? addComment(e) : undefined } 
         />
     </div>
+
 </div>
 <!-- ######################################## -->
 

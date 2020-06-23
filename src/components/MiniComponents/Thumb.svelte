@@ -6,6 +6,7 @@
 
     const { open } = getContext('simple-modal');
     
+    // ====================== PROPS ======================
     export let oldImage = undefined;
     export let preview = undefined;
     export let index;
@@ -13,6 +14,7 @@
 
     const changeProfileImage = () => $store.selectedProfileImage = preview ? preview : oldImage;
 
+    // ====================== SHOW IMAGES FULLSCREEN ======================
     const showFullscreenImgs = () => {
         open(
 			Slides,
@@ -48,7 +50,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     .thumb {
         display: inline-flex;

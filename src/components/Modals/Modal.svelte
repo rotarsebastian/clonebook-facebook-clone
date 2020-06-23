@@ -8,8 +8,8 @@
    {/if}
 </svelte:head>	
 
+<!-- SVELTE MODAL CONFIGS -->
 <script>
-	// Version 0.4.1
   import { setContext as baseSetContext } from 'svelte';
   import { fade } from 'svelte/transition';
   import CloseButton from './../MiniComponents/CloseButton.svelte';

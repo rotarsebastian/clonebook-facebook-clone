@@ -3,6 +3,7 @@
     import { store } from './../../../../stores/store.js';
     import { goto } from '@sveltech/routify';
 
+    // ====================== PROPS ======================
     export let hideDrop = undefined;
 
     // ====================== OPEN USER CHAT ======================
@@ -18,13 +19,13 @@
 </script>
 
 <!-- ######################################## -->
-
 <div id="messagesDrop" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
     <div class="itemsContainer">
         <div class="items">
 
             {#if $store.user.messages.length === 0}
                 <div>No new messages</div>
+                
                 {:else}
                     {#each $store.user.messages as message}
                         <div class="item" on:click={() => openChat(message.from)} class:notSeen={!message.seen}>
@@ -50,7 +51,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     #messagesDrop .itemsContainer .profile .data {
         display: flex;

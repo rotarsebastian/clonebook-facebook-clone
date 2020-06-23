@@ -7,39 +7,34 @@
     import { goto } from '@sveltech/routify';
     import { store } from './../../stores/store';
     import { editComment, likeComment } from './../../helpers/posts';
-    import { getNotificationsContext } from 'svelte-notifications';
+    import { showNotification } from './../../helpers/actionNotifications';
     import { validateForm } from './../../helpers/validation';
     import { parseDate } from './../../helpers/dateParser';
     import { getUsersByIDs } from '../../helpers/user';
     import UsersList from './../Modals/UsersList.svelte';
 
-    const { addNotification } = getNotificationsContext();
+    const { open } = getContext('simple-modal');
 
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
-
+    // ====================== PROPS ======================
     export let postId;
     export let comment;
     export let onDelete;
 
-    const { open } = getContext('simple-modal');
+    // ====================== DYNAMIC VARIABLES ======================
+    let liked = comment.likes.findIndex(like => like === $store.user._id) > -1 ? true : false,
+        showEditDelete = false, showDropdown = false, editDelete;
 
-    let liked = comment.likes.findIndex(like => like === $store.user._id) > -1 ? true : false; 
-    let showEditDelete = false, showDropdown = false, editDelete;
+    // ====================== REACTIVE ELEMENTS ======================
     $: likes = comment.likes.length;
 
+    // ====================== LIKE A COMMENT ======================
     const handleLike = async() => {
         liked = !liked;
         const result = liked ? await likeComment(postId, comment._id, 1, $store.accessToken) : await likeComment(postId, comment._id, 0, $store.accessToken);
-        console.log(result);
+        if(result.status !== 1) return showNotification('danger', 'Comment cannot be liked!');
     }
-	
+    
+    // ====================== EDIT COMMENT ======================
 	const onOkay = async(text) => {
         if(text) {
             // ====================== VALIDATION ======================
@@ -48,18 +43,23 @@
             const isFormValid = validateForm(editCommentData);
             if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+            // ====================== REQUEST ======================
             const result = await editComment(postId, text, comment._id, $store.accessToken);
-            console.log(result);
 
             if(result.status === 1) {
                 return showNotification('success', 'Comment edited successfully!');
-            } 
+            } else showNotification('danger', 'Comment cannot be edited!');
         }
+        
+        // ====================== REDIRECT TO DELETE COMMENT ======================
         else onDelete(comment._id);
 	}
 
+    // ====================== SHOW EDIT / DELETE COMMENT MODAL ======================
     const showDialog = dialogFor => {
         showDropdown = false;
+
+        // ====================== CHECK IF IT IF EDIT / DELETE COMMENT ======================
         const dialogObj = dialogFor === 'delete' ? 
             {
                 message: 'delete',
@@ -75,7 +75,9 @@
                 message: 'edit',
                 hasForm: true,
 				onOkay
-			};
+            };
+            
+        // ====================== SHOW EDIT / DELETE COMMENT MODAL ======================
 		open(
 			Dialog,
 			dialogObj,
@@ -84,22 +86,27 @@
                 closeOnEsc: true,
                 closeOnOuterClick: true,
 			}
-	  );
+	    );
     };
 
+    // ====================== SHOW USERS WHICH LIKED COMMENT ======================
     const getUsersWhichLiked = async() => {
         const result = await getUsersByIDs(comment.likes, $store.accessToken);
-        open(
-			UsersList,
-			{ users: result.data },
-			{
-				closeButton: true,
-                closeOnEsc: true,
-                closeOnOuterClick: true,
-			}
-	    );
+
+        if(result.status === 1) {
+            open(
+                UsersList,
+                { users: result.data },
+                {
+                    closeButton: true,
+                    closeOnEsc: true,
+                    closeOnOuterClick: true,
+                }
+            );
+        }
     }
 
+    // ====================== HANDLE ON CLICK OUTSIDE ======================
     window.addEventListener('click', e => {
         if(e.target === editDelete) showDropdown = !showDropdown;
         else if(showDropdown === true) showDropdown = false;
@@ -109,14 +116,23 @@
 
 <!-- ######################################## -->
     <div class="commentContainer" on:mouseleave={() => showEditDelete = false} on:mouseenter={() => showEditDelete = true}>
-        <div class="profile"><ProfileImg size={2} img={comment.authorImg} slideShowImgs={[ comment.authorImg ]}  /></div>
+
+        <!-- COMMENT AUTHOR - PROFILE IMAGE -->
+        <div class="profile"><ProfileImg size={2} img={comment.authorImg} slideShowImgs={[ comment.authorImg ]} /></div>
+
+        <!-- COMMENT GREY CONTAINER -->
         <div>
+        
+            <!-- COMMENT AUTHOR, TEXT & LIKES NUMBER -->
             <div class="commLike">
+
+                <!-- NAME AND TEXT -->
                 <div class="comment">
                     <div class="name" on:click={() => $goto('profile', { id: comment.authorId })}>{comment.author}</div>
                     <div class="comm">{comment.text}</div>
                 </div>
                 
+                <!-- IF LIKES SHOW LIKES -->
                 {#if likes > 0}
                     <span class="likeIconbox">
                         <span class="likesList" on:click={getUsersWhichLiked}>
@@ -126,6 +142,7 @@
                     </span>
                 {/if}
 
+                <!-- SHOW EDIT / DELETE BUTTON -->
                 {#if showEditDelete && comment.authorId === $store.user._id}
                     <img 
                         bind:this={editDelete} 
@@ -138,17 +155,27 @@
                     />
                 {/if}
 
+                <!-- SHOW EDIT / DELETE DROPDOWN -->
                 {#if showDropdown}
                     <div class="editPosition">
                         <EditDelete showDialog={showDialog} />
                     </div>
                 {/if}
+
             </div>
 
+            <!-- COMMENT LIKE BUTTON AND DATE -->
             <div class="actions">
+
+                <!-- LIKE BUTTON -->
                 <div class="like" on:click={handleLike} class:liked={liked === true}>Like</div>
+
                 <span>&nbsp;·&nbsp;</span>
+
+                <!-- COMMENT DATE -->
                 <div class="timePassed">{parseDate(comment.date)}</div>
+
+                <!-- IF COMMENT WAS EDITED -->
                 {#if comment.edited === true}
                     <span>&nbsp;·&nbsp;</span>
                     <div class="timePassed">Edited</div>
@@ -159,7 +186,6 @@
     </div>
 
 <!-- ######################################## -->
-
 <style>
     .editPosition {
         position: absolute;

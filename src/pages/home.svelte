@@ -2,7 +2,7 @@
 	import Posts from './../components/Posts/Posts.svelte';
 	import ChatList from './../components/ChatList/ChatList.svelte';
 	import { store } from './../stores/store';
-	import { getAccessToken } from './../helpers/user';
+	import { getAccessToken, endpoint } from './../helpers/user';
 	import { getFeedPosts } from './../helpers/posts';
 	import { onDestroy } from 'svelte';
 
@@ -36,7 +36,7 @@
 	
 	// ====================== WATCH POSTS FOR CHANGES ======================
 	const subscribePosts = async() => {
-		eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
+		eventSource = new EventSource(`${endpoint}/posts/subscribe`);
 
 		eventSource.addEventListener('message', e => {
 			try {

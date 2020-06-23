@@ -1,7 +1,7 @@
 <script>
-    export let close;
-    export let top;
-    export let right;
+  export let close;
+  export let top;
+  export let right;
 </script>
 
 <!-- ######################################## -->
@@ -9,7 +9,6 @@
 <button style={`top: ${top}rem;right: ${right}rem;`} on:click={close} class="close"></button>
 
 <!-- ######################################## -->
-
 <style>
   .close {
     display: block;

@@ -1,4 +1,4 @@
-export const endpoint = 'http://localhost:9999/api';
+import { endpoint } from './user';
 const conversationsEndpoint = endpoint + '/conversations';
 
 export const getConversation = async(friend, offset, token) => {

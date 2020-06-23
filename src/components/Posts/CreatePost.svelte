@@ -4,26 +4,24 @@
     import { getContext } from 'svelte';
     import { store } from './../../stores/store.js';
 
-    export let createPost;
-
     const { open } = getContext('simple-modal');
 
-    const onOkay = (text, files) => {
-        createPost(text, files);
-	}
+    // ====================== PROPS ======================
+    export let createPost;
 
+    // ====================== REDIRECT TO CREATE POST ======================
+    const onOkay = (text, files) => createPost(text, files);
+
+    // ====================== OPEN CREATE POST MODAL ======================
     const showDialog = () => {
-
-        const dialogObj = {
-            elem: 'post',
-            message: 'create',
-            hasForm: true,
-            onOkay
-        };
-
 		open(
 			Dialog,
-			dialogObj,
+			{
+                elem: 'post',
+                message: 'create',
+                hasForm: true,
+                onOkay
+            },
 			{
 				closeButton: true,
                 closeOnEsc: true,
@@ -35,6 +33,8 @@
 
 <!-- ######################################## -->
 <div class="createPost">
+
+    <!-- PROFILE IMAGE & INPUT -->
     <div class="topContainer">
         <ProfileImg size={2.5} img={$store.user.images[0]}  />
         <input 
@@ -44,24 +44,30 @@
             on:click={showDialog}
         />
     </div>
+
+    <!-- BOTTOM CONTAINER - PHOTO - TAG - FEELING -->
     <div class="bottomContainer">
+
         <div class="photo button">
             <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yc/r/7v6BHTdGI6G.png" alt="photoimg" height="20" width="20" />
             Photo/Video
         </div>
+
         <div class="tag button">
             <img src="https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/cb8bAKR-VRO.png" alt="phototag" height="20" width="20">
             Tag Friends
         </div>
+
         <div class="feeling button">
             <img src="https://static.xx.fbcdn.net/rsrc.php/v3/y1/r/33sb32JAgNq.png" alt="photolucky" height="20" width="20">
             Feeling/Activity
         </div>
+        
     </div>
+
 </div>
 
 <!-- ######################################## -->
-
 <style>
     .createPost {
         border-radius: 8px;

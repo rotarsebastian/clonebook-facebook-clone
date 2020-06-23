@@ -1,22 +1,21 @@
 <script>
     import ProfileImg from './../../../MiniComponents/ProfileImage.svelte';
-    import IconUser from '../../../MiniComponents/IconUser.svelte';
     import Dialog from '../../../Modals/Dialog.svelte';
-    import { store } from './../../../../stores/store.js';
+    import { store } from './../../../../stores/store';
     import { goto } from '@sveltech/routify';
     import ArrowDrop from './ArrowDrop.svelte';
     import MessagesDrop from './MessagesDrop.svelte';
     import NotificationsDrop from './NotificationsDrop.svelte';
-    import { getUserNotifications } from './../../../../helpers/notifications.js';
+    import { getUserNotifications } from './../../../../helpers/notifications';
     import { validateForm } from './../../../../helpers/validation';
-    import { markConversationAsSeen } from './../../../../helpers/conversations.js'; 
-    import { addPost } from './../../../../helpers/posts.js';   
+    import { markConversationAsSeen } from './../../../../helpers/conversations'; 
+    import { showNotification } from './../../../../helpers/actionNotifications'; 
+    import { addPost } from './../../../../helpers/posts';   
+    import { endpoint } from './../../../../helpers/user';   
     import io from 'socket.io-client';
     import { onMount, onDestroy } from 'svelte';
     import { getContext } from 'svelte';
-    import { getNotificationsContext } from 'svelte-notifications';
 
-    const { addNotification } = getNotificationsContext();
     const { open } = getContext('simple-modal');
 
     // ====================== LIFECYCLE METHODS ======================
@@ -28,21 +27,12 @@
     });
     
     // ====================== CONSTANT VARIABLES ======================
-    const socketUrl = 'http://localhost:9999';
+    const socketUrl = `${endpoint.replace('/api', '')}`;
     const iconsContainer = ['create minimize', 'messages', 'notifications', 'dropdown minimize'];
     const dropdowns = { showArrowDrop: false, showMessagesDrop: false, showNotifDrop: false, showCreateDrop: false };
 
     // ====================== DYNAMIC VARIABLES ======================
     let eventSource;
-
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
 
     // ====================== INIT MESSAGES SOCKET ======================
     const initSocket = () => {
@@ -102,7 +92,7 @@
     
     // ====================== SUBSCRIBE TO NOTIFICATIONS ======================
     const subscribeNotif = async() => {
-        eventSource = new EventSource('http://localhost:9999/api/notifications/subscribe');
+        eventSource = new EventSource(`${endpoint}/notifications/subscribe`);
         
 		eventSource.addEventListener('message', e => {
 			try {
@@ -204,17 +194,14 @@
 
     // ====================== OPEN CREATE POST DIALOG ======================
     const showDialog = () => {
-
-        const dialogObj = {
-            elem: 'post',
-            message: 'create',
-            hasForm: true,
-            onOkay
-        };
-
 		open(
 			Dialog,
-			dialogObj,
+			{
+                elem: 'post',
+                message: 'create',
+                hasForm: true,
+                onOkay
+            },
 			{
 				closeButton: true,
                 closeOnEsc: true,
@@ -251,7 +238,6 @@
 </script>
 
 <!-- ######################################## -->
-
 <div class="rightContainer">
 
     <!-- PERSONAL PROFILE -->

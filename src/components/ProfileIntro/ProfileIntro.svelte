@@ -1,26 +1,18 @@
 <script>
     import moment from 'moment';
     import { store } from './../../stores/store';
-    import { getNotificationsContext } from 'svelte-notifications';
+	import { showNotification } from './../../helpers/actionNotifications';
     import { sendFriendRequest } from './../../helpers/notifications';
     import { deleteFriend } from './../../helpers/user';
     import { goto } from '@sveltech/routify';
-    
+	
+	// ====================== PROPS ======================
     export let user_profile;
 	
-    const { addNotification } = getNotificationsContext();
-
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
-
+	// ====================== SEND FRIEND REQUEST ======================
     const handleFriendRequest = async() => {
 		const response = await sendFriendRequest(user_profile._id, $store.accessToken);
+
 		if(response.status !== 1) console.log(response);
 		else {
 			$store.notifications = [ ...$store.notifications, { to: user_profile._id, type: 'sentreq' } ];
@@ -28,12 +20,16 @@
 		}
 	}	
 
+	// ====================== UNFRIEND REQUEST ======================
 	const handleUnfriend = async() => {
 		const res = await deleteFriend(user_profile._id, $store.accessToken);
-		const filteredFriends = $store.user.friends.filter(friend => friend.friend_id !== user_profile._id);
-		$store.user.friends = filteredFriends;
-		if($store.chatUserStore !== null && $store.chatUserStore.friend_id === user_profile._id) $store.chatUserStore = null;
-		showNotification('success', 'Friend removed successfully!');
+
+		if(res.status === 1) {
+			$store.user.friends = $store.user.friends.filter(friend => friend.friend_id !== user_profile._id);
+
+			if($store.chatUserStore !== null && $store.chatUserStore.friend_id === user_profile._id) $store.chatUserStore = null;
+			showNotification('success', 'Friend removed successfully!');
+		} else console.log(res);
 	}
 
 </script>
@@ -41,17 +37,25 @@
 <!-- ######################################## -->
 
 <div class="introSection">
+
+	<!-- INTRO - USER DETAILS -->
     <div class="aboutSection">
         <div class="aboutTitle">Intro</div>
+
+		<!-- GENDER -->
         <div class="userGender">
             <img class="icon" src="https://static.xx.fbcdn.net/rsrc.php/v3/yi/r/rodGQv9jZg5.png" alt="" height="20" width="20">
             <span>{user_profile.gender}</span>	
         </div>
+
+		<!-- BIRTHDATE -->
         <div class="userBirthdate">
-        <img class="icon" src="https://static.xx.fbcdn.net/rsrc.php/v3/yB/r/ODICuZSjkMe.png" alt="" height="20" width="20">
+        	<img class="icon" src="https://static.xx.fbcdn.net/rsrc.php/v3/yB/r/ODICuZSjkMe.png" alt="" height="20" width="20">
             <span>Birthdate</span> 
             {moment(user_profile.date).format('D MMMM YYYY')}
         </div>
+
+		<!-- JOIN TIME -->
         <div class="userJoinTime">
             <img class="icon" src="https://static.xx.fbcdn.net/rsrc.php/v3/yw/r/CZzXbYX7tI2.png" alt="" height="20" width="20">
             <span>Joined on</span>
@@ -60,26 +64,38 @@
     </div>
 
 	<div class="friendSection">
+
 		{#if $store.user.friends.findIndex(friend => friend.friend_id === user_profile._id) !== -1}
+
+			<!-- ALREADY A FRIEND -->
 			<button class="friendRequestButton" on:click={handleUnfriend}>
 				Unfriend
 			</button>
+
+			<!-- YOUR PROFILE -->
 			{:else if $store.user._id === user_profile._id}
 				<button class="friendRequestButton" on:click={() => $goto('editProfile')}>
 					Edit profile
 				</button>
+
+			<!-- FRIEND REQUEST SENT -->
 			{:else if $store.notifications.findIndex(notif => notif.type === 'sentreq' && notif.to === user_profile._id) > -1}
 				<button class:disabled={true} disabled={true} class="friendRequestButton" on:click={handleFriendRequest}>
 					<img class="white" src="https://static.xx.fbcdn.net/rsrc.php/v3/yp/r/gXDMGXp9zDk.png" alt="" height="16" width="16">
 					Request sent
 				</button>
 			{:else}
+
+			<!-- ADD AS FRIEND -->
 			<button class="friendRequestButton" on:click={handleFriendRequest}>
 				<img src="https://static.xx.fbcdn.net/rsrc.php/v3/ys/r/j7eGuw2gtsv.png" width="16" height="16" alt="">
 				Add friend
 			</button>
+
 		{/if}
+
 	</div>
+
 </div>
 
 <!-- ######################################## -->

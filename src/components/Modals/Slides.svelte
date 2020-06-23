@@ -3,20 +3,21 @@
     import { getContext } from 'svelte';
 
     const { close } = getContext('simple-modal');
-		
-	const _onCancel = () => close();
 
+    // ====================== PROPS ======================
     export let images;
     export let page;
-
+        
+    // ====================== DYNAMIC VARIABLES ======================
     let current = 0;
-
-    let slides = images.map(img => {
-        return { url: img };
-    });
+    let slides = images.map(img => { return { url: img } });
 
     slides[current].selected = true;
 
+    // ====================== CLOSE MODAL ======================
+	const _onCancel = () => close();
+
+    // ====================== GO TO NEXT IMAGE ======================
     const nextHandler = () => {
         slides[current].selected = false;
         if (current < slides.length - 1) current++;
@@ -24,6 +25,7 @@
         slides[current].selected = true;
     }
 
+    // ====================== GO TO PREVIOUS IMAGE ======================
     const prevHandler = () => {
         slides[current].selected = false;
         if (current > 0) current--;
@@ -33,6 +35,24 @@
     }
 </script>
 
+<!-- ######################################## -->
+
+<!-- SLIDES LIST -->
+<div class="slider">
+  {#each slides as slide}
+    <Slide slide={slide} page={page} />
+  {/each}
+</div>
+
+<!-- ADD ARROWS FOR MULTIPLE IMAGES -->
+{#if slides.length > 1}
+    <div class="buttons">
+    <button id="prev" on:click={prevHandler}></button>
+    <button id="next" on:click={nextHandler}></button>
+    </div>
+{/if}
+
+<!-- ######################################## -->
 <style>
     .slider {
         overflow: hidden;
@@ -80,16 +100,3 @@
         transform: scale(1.1);
     }
 </style>
-
-<div class="slider">
-  {#each slides as slide}
-    <Slide slide={slide} page={page} />
-  {/each}
-</div>
-
-{#if slides.length > 1}
-    <div class="buttons">
-    <button id="prev" on:click={prevHandler}></button>
-    <button id="next" on:click={nextHandler}></button>
-    </div>
-{/if}

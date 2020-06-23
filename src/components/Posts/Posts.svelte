@@ -4,30 +4,23 @@
     import { store } from './../../stores/store.js';
     import { addPost, removePost } from './../../helpers/posts.js';
     import { validateForm } from './../../helpers/validation';
-    import { getNotificationsContext } from 'svelte-notifications';
+    import { showNotification } from './../../helpers/actionNotifications';
 
-    const { addNotification } = getNotificationsContext();
-
+    // ====================== PROPS ======================
     export let propsPosts = undefined;
 
+    // ====================== REACTIVE ELEMENTS ======================
     $: posts = propsPosts ? propsPosts : $store.posts;
-
-    const showNotification = (type, text) => {
-        return addNotification({
-            text,
-            position: 'bottom-right',
-            type,
-            removeAfter: 3000,
-        });
-    }
     
+    // ====================== DELETE A POST ======================
     const deletePost = async(id) => {
         const result = await removePost(id, $store.accessToken);
         if(result.status === 1) {
             return showNotification('success', 'Post deleted successfully!');
-        } 
+        } else return showNotification('danger', 'Post cannot be deleted!');
     }
 
+    // ====================== CREATE NEW POST ======================
     const createPost = async(text, files) => {
 
         // ====================== VALIDATION ======================
@@ -40,19 +33,18 @@
         const isFormValid = validateForm(newPostData);
         if(!isFormValid.formIsValid) return showNotification('danger', `Invalid ${isFormValid.invalids.join(', ')}`);
 
+        // ====================== CONSTRUST REQUEST OBJECT ======================
         const requestData = new FormData();
 
         requestData.append('data', JSON.stringify(newPostData));
-
         files.map(file => requestData.append('image', file, file.name));
 
+        // ====================== REQUEST ======================
         const res = await addPost(requestData, $store.accessToken);
 
         // ====================== RESPONSE ======================
-        if(res.status === 1) {
-            // $store.posts = [ res.property, ...$store.posts ];
-            return showNotification('success', 'Post created successfully!');
-        } 
+        if(res.status === 1) return showNotification('success', 'Post created successfully!');
+        else return showNotification('danger', 'Post cannot be created!');
     }
 
 </script>
@@ -61,14 +53,19 @@
 
 {#if posts.length > 0}
     <div class="postsContainer">
+
+        <!-- CREATE POST -->
         {#if !propsPosts}
             <CreatePost createPost={createPost} />
         {/if}
+
+        <!-- POSTS LIST -->
         <div class="posts">
             {#each posts as post}
                 <Post onDelete={deletePost} id={post._id} propsPost={post} />
             {/each}
         </div>
+
     </div>
 {/if}
 

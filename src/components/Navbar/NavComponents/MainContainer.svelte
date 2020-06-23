@@ -1,7 +1,7 @@
 <script>
     import { url, isActive } from '@sveltech/routify';
 
-    const mainContainer = [
+    const middleIcons = [
         ['./home', 'home'], 
         ['./watch', 'watch'], 
         ['./market', 'market'], 
@@ -13,8 +13,10 @@
 
 <!-- ######################################## -->
 
+<!-- NAVBAR MIDDLE ICONS -->
 <div class="mainContainer">
-    {#each mainContainer as [ path, elem ]}
+
+    {#each middleIcons as [ path, elem ]}
         <a href={$url(path)}>
             <div class="wholeArea" class:active={$isActive(path)}>
                 <div class="iconArea">
@@ -26,10 +28,10 @@
             </div>
         </a>
     {/each}
+    
 </div>
 
 <!-- ######################################## -->
-
 <style>
     .mainContainer {
         display: flex;

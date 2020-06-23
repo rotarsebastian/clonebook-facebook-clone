@@ -1,7 +1,7 @@
 
 <script>
 	import { store } from './../stores/store';
-    import { getAccessToken, getSpecificUser } from './../helpers/user';
+    import { getAccessToken, getSpecificUser, endpoint } from './../helpers/user';
 	import { params } from '@sveltech/routify';
 	import ProfileImage from './../components/MiniComponents/ProfileImage.svelte';
 	import ProfileIntro from './../components/ProfileIntro/ProfileIntro.svelte';
@@ -39,7 +39,7 @@
 	
 	// ====================== WATCH FOR CHANGES INTO POSTS ======================
 	const subscribePosts = async() => {
-		eventSource = new EventSource('http://localhost:9999/api/posts/subscribe');
+		eventSource = new EventSource(`${endpoint}/posts/subscribe`);
 
 		eventSource.addEventListener('message', e => {
 			try {

@@ -5,14 +5,13 @@
 
     const { close } = getContext('simple-modal');
 		
-	const _onCancel = () => close();
-
     export let users;
+
+	const _onCancel = () => close();
 
 </script>
 
 <!-- ######################################## -->
-
 <div id="likesList">
     <div id="title">Likes</div>
     {#each users as user}
@@ -23,7 +22,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     #likesList {
         margin: .5rem;

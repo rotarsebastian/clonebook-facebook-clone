@@ -8,6 +8,7 @@
 
     const { open } = getContext('simple-modal');
 
+    // ====================== SHOW IMAGES FULLSCREEN ======================
     const showFullscreenImgs = () => {
         open(
 			Slides,
@@ -38,7 +39,6 @@
 {/if}
 
 <!-- ######################################## -->
-
 <style>
     .profileImgDefault {
         width: 2rem;

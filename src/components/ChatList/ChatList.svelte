@@ -2,28 +2,29 @@
     import IconUser from '../MiniComponents/IconUser.svelte';
     import { store } from '../../stores/store.js';
     import { parseDate } from './../../helpers/dateParser';
+    import { endpoint } from './../../helpers/user';
     import { onDestroy } from 'svelte';
 
-	onDestroy(() => {
-        if(eventSource) eventSource.close();
-    });
+	onDestroy(() => { if(eventSource) eventSource.close() });
 
+    let eventSource;
+
+    // ====================== CHANGE CURRENT CHAT ======================
     const changeChatContainer = contact => {
         $store.chatUserStore = null;
         setTimeout(() => $store.chatUserStore = contact, 100);
     }
 
-    let eventSource;
-
-    // ====================== SUBSCRIBE TO NOTIFICATIONS ======================
+    // ====================== SUBSCRIBE TO STATUSES CHANGE ======================
     const subscribeStatuses = async() => {
-        eventSource = new EventSource('http://localhost:9999/api/statuses/subscribe');
+        eventSource = new EventSource(`${endpoint}/statuses/subscribe`);
         
 		eventSource.addEventListener('message', e => {
 			try {
                 const statuses = JSON.parse(e.data.split('||')[0]);
                 const disconnectedUsersTimes = JSON.parse(e.data.split('||')[1]);
 
+                // ====================== SET DISCONECTED USERS TIMES ======================
                 let disconectedUsers = [];
 
                 $store.user.friends.map(friend => {
@@ -33,6 +34,7 @@
 
                 $store.disconnectedUsersTimes = disconectedUsers;
 
+                // ====================== SET CONNECTED USERS ======================
                 $store.onlineFriends = $store.user.friends.filter(friend => 
                     statuses.findIndex(friendId => friend.friend_id === friendId) > -1).map(el => el.friend_id);
 
@@ -51,6 +53,7 @@
     <div id="activeChatList">
         <div id="title">Contacts</div>
         
+        <!-- CHAT LIST -->
         {#each $store.user.friends as contact}
             <div class="activeUser" on:click={() => changeChatContainer(contact)} >
                 <IconUser user={contact} />
@@ -62,11 +65,11 @@
                 {/if}
             </div>
         {/each}
+
     </div>
 {/if}
 
 <!-- ######################################## -->
-
 <style>
     #activeChatList {
         width: 20rem;

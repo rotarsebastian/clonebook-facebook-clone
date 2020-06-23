@@ -4,6 +4,7 @@
     import { goto } from '@sveltech/routify';
     import { logout } from './../../../../helpers/user';
 
+    // ====================== PROPS ======================
     export let hideDrop = undefined;
 
     // ====================== HANDLE LOGOUT USER OPERATIONS ======================
@@ -28,7 +29,6 @@
 </script>
 
 <!-- ######################################## -->
-
 <div id="dropdownCaret" class="animated fast fadeIn" on:click={e => e.stopPropagation()}>
     <div class="itemsContainer">
         <div class="items">
@@ -53,7 +53,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     #dropdownCaret {
         opacity: 0;

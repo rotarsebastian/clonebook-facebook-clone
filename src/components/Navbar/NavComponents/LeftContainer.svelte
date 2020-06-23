@@ -6,7 +6,7 @@
     import { goto } from '@sveltech/routify';
     import { onMount } from 'svelte';
 
-    // ====================== VARIABLES ======================
+    // ====================== DYNAMIC VARIABLES ======================
     let ajUsers = [];
     let showingResults = false;
     let searchInput;
@@ -32,7 +32,6 @@
     // ====================== REDIRECT TO USER PROFILE ======================
     const handleRedirect = id => {
         $goto(`profile?id=${id}`);
-        // $goto('/profile', { id });
         showingResults = false;
         ajUsers = [];
         searchInput.value = '';
@@ -102,7 +101,6 @@
 </div>
 
 <!-- ######################################## -->
-
 <style>
     .leftContainer {
         display: flex;

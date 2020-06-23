@@ -187,10 +187,15 @@
                 </div>
             </div>
 
+            <!-- INPUT MESSAGE CONTAINER -->
             <div class="formContainer">
+
+                <!-- IF THE OTHER USER IS TYPING -->
                 {#if $store.chatUserStore.isTyping}
                     <div class="chatIsTyping">{$store.chatUserStore.name.split(' ')[0]} is typing...</div>
                 {/if}
+
+                <!-- SEND MESSAGE FORM -->
                 <form on:submit|preventDefault={handleSendMessage}>
                     <textarea 
                         type="text" 
@@ -202,6 +207,7 @@
                     ></textarea>
                     <span on:click={handleSendMessage}></span>
                 </form>
+                
             </div>
 
         </div>
@@ -211,7 +217,6 @@
 {/await}
 
 <!-- ######################################## -->
-
 <style>
     .textDateContainer {
         display: flex;

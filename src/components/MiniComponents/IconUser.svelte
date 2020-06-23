@@ -1,8 +1,10 @@
 <script>
-    export let user;
-    export let click = undefined;
     import ProfileImg from './ProfileImage.svelte';
     import { goto } from '@sveltech/routify';
+
+    // ====================== PROPS ======================
+    export let user;
+    export let click = undefined;
     
     const handleClick = () => {
         if(click) $goto(`profile?id=${user.friend_id}`);
@@ -16,7 +18,6 @@
 <div class="profileName" class:hoverable={click} on:click={handleClick}>{user.name}</div>
 
 <!-- ######################################## -->
-
 <style>
     .profileName {
         margin-left: .5rem;
