@@ -20,7 +20,7 @@
     let form, files = [];
 
     // ====================== ADD SELECTED IMAGES ======================
-    const setNewFiles = newFiles => files = [ ...newFiles ];
+    const setNewFiles = newFiles => files = newFiles;
     
     // ====================== CAPITALIZE TEXT ======================
     const capitalize = text => text.charAt(0).toUpperCase() + text.slice(1);

@@ -11,11 +11,9 @@
         const inputImages = Array.from(e.target.files);
 
         const newImages = inputImages.filter(file => { 
-        if(files.findIndex(propFile => propFile.name === file.name) === -1) 
-            return Object.assign(file, { preview: URL.createObjectURL(file) } )
+            if(files.findIndex(propFile => propFile.name === file.name) === -1) 
+                return Object.assign(file, { preview: URL.createObjectURL(file) })
         });
-
-        if(inputImages.length !== newImages.length) showNotification('warning', 'You uploaded duplicates! Only the new images will be added!');
 
         let updateImages = [ ...files, ...newImages ];
 
@@ -33,6 +31,7 @@
         newFiles.splice(index, 1);
         setNewFiles(newFiles);
     }
+
 </script>
 
 <!-- ######################################## -->
