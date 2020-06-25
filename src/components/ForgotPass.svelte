@@ -6,7 +6,7 @@
     import { recoverOrResendValidation } from './../helpers/user';
     
     // ====================== DYNAMIC VARIABLES ======================
-    let recoverEmail = 'rotar.seby1@gmail.com', buttonLoading = false;;
+    let recoverEmail = 'rotar.seby@gmail.com', buttonLoading = false;;
 
     // ====================== RECOVER USER PASSWORD ======================
     const handleRecover = async() => {

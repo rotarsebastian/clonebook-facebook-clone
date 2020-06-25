@@ -12,7 +12,7 @@
     import { isUuid } from 'uuidv4';
 
     // ====================== DYNAMIC VARIABLES ======================
-    let loginPass = '123123', loginEmail = 'rotar.seby1@gmail.com',
+    let loginPass = '123123', loginEmail = 'rotar.seby@gmail.com',
         showForgotPass = false, showChangePass = false, buttonLoading = false;
 
     // ====================== CONSTANT VARIABLES ======================

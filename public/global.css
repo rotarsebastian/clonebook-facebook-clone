@@ -63,7 +63,7 @@ img.profileImg {
 	font-size: .85rem;
 }
 
-.notifications {
+body > div.notifications {
 	z-index: 1001 !important;
 	position: fixed;
 }

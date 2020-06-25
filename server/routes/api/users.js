@@ -168,7 +168,7 @@ router.patch('/', isAuthenticated, (req, res) => {
             await Post.updateMany({ authorId: req.user._id }, updatedUserObj);
             await Post.updateMany(
                 { comments: { $elemMatch: { authorId: req.user._id }} }, 
-                { $set: { 'comments.$.author': updatedUserObj.author, 'comments.$.authorImg': updatedUserObj.authorImg } }, 
+                { $set: { 'comments.$[].author': updatedUserObj.author, 'comments.$[].authorImg': updatedUserObj.authorImg } }, 
                 { multi: true, useFindAndModify: false }
             );
             

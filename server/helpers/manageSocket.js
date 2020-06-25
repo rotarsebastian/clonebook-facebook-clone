@@ -24,7 +24,7 @@ module.exports = socket => {
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if(err) return socket.emit('authorization', { status: 0, msg: 'User not authorized!', err });
             currentlyConnectedUsers.push({ socketId: socket.id, userId: user._id });
-            disconnectedUsersTimes = disconnectedUsersTimes.filter(user => user.id !== user._id);  
+            disconnectedUsersTimes = disconnectedUsersTimes.filter(oneUser => oneUser.id !== user._id);  
 
             socket.emit('authorization', { status: 1 });
         });
@@ -35,7 +35,7 @@ module.exports = socket => {
         if(!data) return;
         const { from, to, text, from_user_first_name, from_user_image } = data;
         if(!from || !to || !text) return;
-
+        
         const message = { from, text, from_user_first_name, from_user_image, date: new Date() };
         
         saveMessageIntoDB(from, to, text);

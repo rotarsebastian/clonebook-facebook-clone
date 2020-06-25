@@ -51,6 +51,7 @@
 
         // ====================== ON NEW MESSEGE RECEIVED ======================
         socketInit.on('gotMessage', message => {
+            console.log(message);
             const findFromIndex = $store.user.messages.findIndex(msg => msg.from === message.from);
             if(findFromIndex === -1) $store.user.messages = [ message, ...$store.user.messages ];
             else {
